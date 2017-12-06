@@ -3,26 +3,35 @@
 */
 #pragma once
 
+#include "types.h"
 #include <vector>
 #include <vulkan/vulkan.h>
-#include "vertex.hpp"
 
 namespace Concise
 {
 	class Device;
 	
+	struct Vertex
+	{
+		float positions[4];
+		float colors[4];
+	}
+	
 	struct Buffer
 	{
-		VkDeviceMemory m_memory;
-		VkBuffer m_buffer;
+		VkDeviceMemory memory;
+		VkBuffer buffer;
 	}
 	
 	class Vertices
 	{
 	private:
 		Buffer m_vertexBuffer;
-		std::vector<Vertex> m_data;
+		Buffer m_indexBuffer;
 	public:
 		Vertices(Device * device);
+		~Vertices();
+	public:
+		void Submit(std::vector<Vertex>& vertexData, std::vector<UInt32>& indexData);
 	}
 }

@@ -3,6 +3,8 @@
 */
 
 #include "device.h"
+#include "utils.h"
+#include "vkfactory.h"
 
 namespace Concise
 {
@@ -12,6 +14,11 @@ namespace Concise
 	}
 	
 	Device::~Device()
+	{
+		
+	}
+	
+	Device::Init()
 	{
 		
 	}
@@ -30,6 +37,49 @@ namespace Concise
 			typeBits >>= 1;
 		}
 		
-		LOG_ERROR("GetMemoryTypeIndex");
+		Utils::LOG_ERROR("GetMemoryTypeIndex");
+	}
+	
+	VkCommandBuffer Device::GetCommandBuffer(bool beginRecord)
+	{
+		VkCommandBuffer cmdBuffer;
+
+		VkCommandBufferAllocateInfo cmdBufAllocateInfo = {};
+		cmdBufAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		cmdBufAllocateInfo.commandPool = m_cmdPool;
+		cmdBufAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		cmdBufAllocateInfo.commandBufferCount = 1;
+	
+		Utils::VK_CHECK_RESULT(vkAllocateCommandBuffers(m_device, &cmdBufAllocateInfo, &cmdBuffer));
+
+		if (beginRecord)
+		{
+			VkCommandBufferBeginInfo cmdBufInfo = VkFactory::CommandBufferBeginInfo();
+			Utils::VK_CHECK_RESULT(vkBeginCommandBuffer(cmdBuffer, &cmdBufInfo));
+		}
+
+		return cmdBuffer;
+	}
+	
+	void Device::FlushCommandBuffer(VkCommandBuffer commandBuffer)
+	{
+		assert(commandBuffer != VK_NULL_HANDLE);
+
+		Utils::VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
+
+		std::vector<VkCommandBuffer> commandBuffers;
+		commandBuffers.push_back(commandBuffer);
+		VkSubmitInfo submitInfo = VkFactory::SubmitInfo(commandBuffers);
+
+		VkFenceCreateInfo fenceCreateInfo = VkFactory::FenceCreateInfo();
+		VkFence fence;
+		Utils::VK_CHECK_RESULT(vkCreateFence(m_device, &fenceCreateInfo, nullptr, &fence));
+
+		Utils::VK_CHECK_RESULT(vkQueueSubmit(m_device, 1, &submitInfo, fence));
+		VK_CHECK_RESULT(vkWaitForFences(m_device, 1, &fence, VK_TRUE, DEFAULT_FENCE_TIMEOUT));
+
+		/**TODO, RAII */
+		vkDestroyFence(m_device, fence, nullptr);
+		vkFreeCommandBuffers(m_device, m_cmdPool, 1, &commandBuffer);
 	}
 }
