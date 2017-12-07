@@ -1,4 +1,7 @@
 
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "uniforms.h"
 #include "vkfactory.h"
 #include "utils.h"
@@ -34,6 +37,18 @@ namespace Concise
 	
 	void Uniforms::UpdateVS()
 	{
-		
+		m_vsData.projectionMatrix = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 0.1f, 256.0f);
+
+		m_vsData.viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, zoom));
+
+		m_vsData.modelMatrix = glm::mat4(1.0f);
+		m_vsData.modelMatrix = glm::rotate(m_vsData.modelMatrix, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+		m_vsData.modelMatrix = glm::rotate(m_vsData.modelMatrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+		m_vsData.modelMatrix = glm::rotate(m_vsData.modelMatrix, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		void * data;
+		Utils::VK_CHECK_RESULT(vkMapMemory(m_device->GetLogicalDevice(), m_vsBuffer.memory, 0, sizeof(m_vsData), 0, (void **)&data));
+		memcpy(data, &m_vsData, sizeof(m_vsData));
+		vkUnmapMemory(m_device->GetLogicalDevice(), m_vsBuffer.memory);
 	}
 }

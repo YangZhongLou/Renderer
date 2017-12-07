@@ -12,9 +12,9 @@ namespace Concise
 	private:
 		struct 
 		{
-			glm::mat4 m_projectionMatrix;
-			glm::mat4 m_modelMatrix;
-			glm::mat4 m_viewMatrix;
+			glm::mat4 projectionMatrix;
+			glm::mat4 modelMatrix;
+			glm::mat4 viewMatrix;
 		} m_vsData;
 		
 		struct 

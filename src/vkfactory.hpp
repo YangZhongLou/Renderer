@@ -11,6 +11,48 @@ namespace Consice
 {
 	namespace VkFactory
 	{
+		inline VkRect2D Scissor(Int32 width, Int32 height, Int32 offsetX = 0, Int32 offsetY = 0)
+		{
+			VkRect2D scissor = {};
+			scissor.extent.width = width;
+			scissor.extent.height = height;
+			scissor.offset.x = offsetX;
+			scissor.offset.y = offsetY;
+			
+			return scissor;
+		}
+		
+		inline VkViewport ViewPort(float width, float height, float minDepth, float maxDepth)
+		{
+			VkViewport viewport = {};
+			viewport.height = height;
+			viewport.width = width;
+			viewport.minDepth = 0.0f;
+			viewport.maxDepth = 1.0f;
+			
+			return viewport;
+		}
+		
+		inline VkRenderPassBeginInfo RenderPassBeginInfo()
+		{
+			VkRenderPassBeginInfo renderPassBeginInfo = {};
+			renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			renderPassBeginInfo.pNext = nullptr;
+			
+			return renderPassBeginInfo;
+		}
+		
+		inline VkCommandBufferAllocateInfo CommandBufferAllocateInfo(VkCommandPool commandPool, VkCommandBufferLevel level)
+		{
+			VkCommandBufferAllocateInfo cmdBufAllocateInfo = {};
+			cmdBufAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+			cmdBufAllocateInfo.commandPool = commandPool;
+			cmdBufAllocateInfo.level = level;
+			cmdBufAllocateInfo.commandBufferCount = 1;
+			
+			return cmdBufAllocateInfo;
+		}
+		
 		inline VkSemaphoreCreateInfo SemaphoreCreateInfo()
 		{
 			VkSemaphoreCreateInfo semaphoreCreateInfo {};

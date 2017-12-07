@@ -5,7 +5,6 @@
 
 namespace Concise
 {
-typedef uint32_t UInt32
-
-
+typedef uint32_t UInt32;
+typedef int32_t Int32;
 }
