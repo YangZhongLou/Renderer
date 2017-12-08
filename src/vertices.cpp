@@ -48,6 +48,7 @@ namespace Concise
 		Utils::VK_CHECK_RESULT(vkBindBufferMemory(m_device->GetLogicalDevice(), m_vertexBuffer.buffer, m_vertexBuffer.memory, 0));
 		
 		/** index buffer */
+		m_indexCount = indexData.size();
 		VkBufferCreateInfo indexBufferCreateInfo = VkFactory::BufferCreateInfo(indexData.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 		Utils::VK_CHECK_RESULT(vkCreateBuffer(m_device->GetLogicalDevice(), &indexBufferCreateInfo, nullptr, &staginIndices.buffer));
 		vkGetBufferMemoryRequirements(m_device->GetLogicalDevice(), staginIndices.buffer, &memReqs);

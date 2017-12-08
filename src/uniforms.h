@@ -31,6 +31,8 @@ namespace Concise
 		
 	public:
 		void Init();
-		void UpdateVS();		
+		void UpdateVS();	
+	public:
+		const VkDescriptorBufferInfo & GetDescriptorBufferInfo() { return m_vsBuffer.descriptorr; }
 	}
 }

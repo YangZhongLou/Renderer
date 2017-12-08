@@ -28,10 +28,14 @@ namespace Concise
 	private:
 		Buffer m_vertexBuffer;
 		Buffer m_indexBuffer;
+		UInt32 m_indexCount;
 	public:
 		Vertices(Device * device);
 		~Vertices();
 	public:
 		void Submit(std::vector<Vertex>& vertexData, std::vector<UInt32>& indexData);
+		const Buffer & GetVertexBuffer() const { return m_vertexBuffer; }
+		const Buffer & GetIndexBuffer() const { return m_indexBuffer; }
+		UInt32 GetIndexCount() const { return m_indexCount; };
 	}
 }
