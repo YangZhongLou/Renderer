@@ -6,6 +6,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include "types.h"
+#include "camera.hpp"
 
 namespace Concise
 {
@@ -21,6 +22,7 @@ namespace Concise
 		VkSemaphoreCreateInfo m_renderSemaphore;
 		std::vector<VkFence> m_fences;
 		
+		UInt32 m_currentBuffer = 0;
 		std::vector<VkCommandBuffer> m_drawCommandBuffers;
 		
 		Device * m_device;
@@ -34,6 +36,7 @@ namespace Concise
 		
 		VkPipelineLayout m_pipelineLayout;
 		VkPipeline m_pipeline;
+		VkPipelineCache m_pipelineCache;
 		
 		Vertices * m_vertices;
 		Uniforms * m_uniforms;
@@ -47,6 +50,8 @@ namespace Concise
 		VkRenderPass m_renderPass;
 		std::vector<VkFramebuffer> m_framebuffers;
 		Swapchain * m_swapchain;
+		
+		Camera m_camera;
 
 		struct Settings
 		{
@@ -70,19 +75,31 @@ namespace Concise
 		void Init();
 		/** refactor this later */
 		void InitWindow(HINSTANCE hinstance, WNDPROC wndproc);
-		
 		void BuildCommandBuffers();
+		void Loop();
+		void RenderFrame();
+		
+		void SubmitVerticesData(std::vector<Vertex> & verticesData, std::vector<UInt32> & indicesData);
 	private:
-		void InitSync();
+		void InitVulkan();
 		void InitVulkanInstance(bool enableValidation);
+		void InitVulkanDevice();
+		
+		void InitSync();
+		void InitVeritces();
+
+		void InitPipelineCache();
 		
 		void InitDepthStencil();
 		void InitFramebuffers();
 		void InitRenderPass();
+		void InitPipelines();
 		
 		void InitDescriptorPool();
 		/** refactor this later */
 		void InitDescriptorSetLayout();
 		void InitDescriptorSet();
+		
+		
 	}
 }

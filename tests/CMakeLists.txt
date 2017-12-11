@@ -15,7 +15,7 @@ function(build_test test_name)
 	#link
 	if(WIN32)
 		add_executable(${test_name} WIN32 ${main_cpp} ${source} ${shaders})
-		target_link_libraries(${test_name} base ${Vulkan_LIBRARY} ${ASSIMP_LIBRARIES} ${WINLIBS})
+		target_link_libraries(${test_name} base ${Vulkan_LIBRARY} ${ASSIMP_LIBRARIES} ${WINLIBS} ${renderer})
 	else(WIN32)
 		add_executable(${test_name} ${main_cpp} ${source} ${shaders})
 		target_link_libraries(${test_name} base )
@@ -30,7 +30,5 @@ endfunction(build_tests)
 
 set(tests
 	triangle)
-	
-	
-	
+		
 build_tests()

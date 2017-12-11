@@ -6,11 +6,275 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 #include "types.h"
+#include "vertices.h"
+#include "shader.h"
 
 namespace Consice
 {
 	namespace VkFactory
 	{	
+		inline VkPipelineCacheCreateInfo PipelineCacheCreateInfo()
+		{
+			VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
+			pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+			return pipelineCacheCreateInfo;
+		}
+	
+		inline VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, Shader * shader)
+		{
+			VkPipelineShaderStageCreateInfo shaderStageCreateInfo;
+			shaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			shaderStageCreateInfo.stage = stage;
+			shaderStageCreateInfo.module = shader->GetModule();
+			shaderStageCreateInfo.pName = "main";
+			
+			return shaderStageCreateInfo;
+		}
+	
+		inline VkPipelineVertexInputStateCreateInfo PipelineVertexInputStateCreateInfo(std::vector<VkVertexInputBindingDescription> & vertexBindingDescriptions, 
+			std::vector<VkVertexInputAttributeDescription> & vertexAttributeDescriptions)
+		{
+			VkPipelineVertexInputStateCreateInfo vertexInputState = {};
+			vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+			vertexInputState.vertexBindingDescriptionCount = vertexBindingDescriptions.size();
+			vertexInputState.pVertexBindingDescriptions = vertexBindingDescriptions.data();
+			vertexInputState.vertexAttributeDescriptionCount = vertexAttributeDescriptions.size();
+			vertexInputState.pVertexAttributeDescriptions = vertexAttributeDescriptions.data();
+		}
+		
+		inline void VertexInputBindingDescription(std::vector<VkVertexInputBindingDescription> & vertexBindingDescriptions)
+		{
+			VkVertexInputBindingDescription vertexInputBinding;
+			vertexInputBinding.binding = 0;
+			vertexInputBinding.stride = sizeof(Vertex);
+			vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			
+			return vertexInputBinding;
+		}
+	
+		void VkVertexInputAttributeDescription VertexInputAttributeDescription(std::vector<VkVertexInputAttributeDescription> & vertexInputAttributeDescriptions)
+		{
+			VkVertexInputAttributeDescription vertexInputAttributeDescription {};
+			
+			vertexInputAttributeDescription.binding = 0;
+			vertexInputAttributeDescription.location = 0;
+			vertexInputAttributeDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
+			vertexInputAttributeDescription.offset = offsetof(Vertex, position);
+			vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
+			
+			vertexInputAttributeDescriptions.binding = 0;
+			vertexInputAttributeDescriptions.location = 1;
+			vertexInputAttributeDescriptions.format = VK_FORMAT_R32G32B32_SFLOAT;
+			vertexInputAttributeDescriptions.offset = offsetof(Vertex, color);
+			vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
+		}
+	
+		inline VkPipelineMultisampleStateCreateInfo PipelineMultisampleStateCreateInfo()
+		{
+			VkPipelineMultisampleStateCreateInfo multisampleState = {};
+			multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+			multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+			multisampleState.pSampleMask = nullptr;
+			
+			return multisampleState;
+		}
+	
+		inline VkPipelineDepthStencilStateCreateInfo PipelineDepthStencilStateCreateInfo()
+		{
+			VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
+			depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+			depthStencilState.depthTestEnable = VK_TRUE;
+			depthStencilState.depthWriteEnable = VK_TRUE;
+			depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+			depthStencilState.depthBoundsTestEnable = VK_FALSE;
+			depthStencilState.back.failOp = VK_STENCIL_OP_KEEP;
+			depthStencilState.back.passOp = VK_STENCIL_OP_KEEP;
+			depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
+			depthStencilState.stencilTestEnable = VK_FALSE;
+			depthStencilState.front = depthStencilState.back;
+			
+			return depthStencilState;
+		}
+	
+		inline VkPipelineDynamicStateCreateInfo PipelineDynamicStateCreateInfo(std::vector<VkDynamicState>& dynamicStates)
+		{
+			VkPipelineDynamicStateCreateInfo dynamicState = {};
+			dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+			dynamicState.pDynamicStates = dynamicStates.data();
+			dynamicState.dynamicStateCount = static_cast<UInt32>(dynamicStates.size());
+			
+			return dynamicState；
+		}
+		
+		inline VkPipelineViewportStateCreateInfo PipelineViewportStateCreateInfo()
+		{
+			VkPipelineViewportStateCreateInfo viewportState = {};
+			viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+			viewportState.viewportCount = 1;
+			viewportState.scissorCount = 1;
+			
+			return viewportState;
+		}
+
+		inline VkPipelineColorBlendStateCreateInfo PipelineColorBlendStateCreateInfo(std::vector<VkPipelineColorBlendAttachmentState> & attachments)
+		{
+			VkPipelineColorBlendStateCreateInfo colorBlendState = {};
+			colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+			colorBlendState.attachmentCount = staic_cast<UInt32>(attachments.size());
+			colorBlendState.pAttachments = attachments.data();
+			
+			return colorBlendState;
+		}
+
+		inline VkPipelineColorBlendAttachmentState PipelineColorBlendAttachmentState()
+		{
+			VkPipelineColorBlendAttachmentState blendAttachmentState = {};
+			blendAttachmentState.colorWriteMask = 0xf;
+			blendAttachmentState.blendEnable = VK_FALSE;
+			
+			return blendAttachmentState;
+		}
+		
+		inline VkPipelineRasterizationStateCreateInfo PipelineRasterizationStateCreateInfo()
+		{
+			VkPipelineRasterizationStateCreateInfo rasterizationState;
+			rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+			rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
+			rasterizationState.cullMode = VK_CULL_MODE_NONE;
+			rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+			rasterizationState.depthClampEnable = VK_FALSE;
+			rasterizationState.rasterizerDiscardEnable = VK_FALSE;
+			rasterizationState.depthBiasEnable = VK_FALSE;
+			rasterizationState.lineWidth = 1.0f;
+			
+			return rasterizationState;
+		}
+	
+		inline VkPipelineInputAssemblyStateCreateInfo PipelineInputAssemblyStateCreateInfo()
+		{
+			VkPipelineInputAssemblyStateCreateInfo inputAssemblyState;
+			inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+			inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+			
+			return inputAssemblyState;
+		}
+		
+		inline VkGraphicsPipelineCreateInfo GraphicsPipelineCreateInfo(
+			std::vector<VkPipelineShaderStageCreateInfo> & shaderStages,
+			VkPipelineVertexInputStateCreateInfo * vertexInputState,
+			VkPipelineInputAssemblyStateCreateInfo * inputAssemblyState,
+			VkPipelineViewportStateCreateInfo * viewportState,
+			VkPipelineRasterizationStateCreateInfo * rasterizationState,
+			VkPipelineMultisampleStateCreateInfo * multisampleState,
+			VkPipelineDepthStencilStateCreateInfo * depthStencilState,
+			VkPipelineColorBlendStateCreateInfo * colorBlendState,
+			VkPipelineDynamicStateCreateInfo * dynamicState,
+			VkPipelineLayout layout,
+			VkRenderPass renderPass,
+			VkPipelineTessellationStateCreateInfo * tessellationState = nullptr)
+		{
+			VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo;
+			graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+			graphicsPipelineCreateInfo.layout = layout;
+			graphicsPipelineCreateInfo.stageCount = static_cast<UInt32>(shaderStages.size());
+			graphicsPipelineCreateInfo.pStages = shaderStages.data();
+
+			graphicsPipelineCreateInfo.pVertexInputState = vertexInputState;
+			graphicsPipelineCreateInfo.pInputAssemblyState = inputAssemblyState;
+			graphicsPipelineCreateInfo.pRasterizationState = rasterizationState;
+			graphicsPipelineCreateInfo.pColorBlendState = colorBlendState;
+			graphicsPipelineCreateInfo.pMultisampleState = multisampleState;
+			graphicsPipelineCreateInfo.pViewportState = viewportState;
+			graphicsPipelineCreateInfo.pDepthStencilState = depthStencilState;
+			graphicsPipelineCreateInfo.renderPass = renderPass;
+			graphicsPipelineCreateInfo.pDynamicState = dynamicState;
+			
+			return graphicsPipelineCreateInfo;
+		}
+	
+		inline VkShaderModuleCreateInfo ShaderModuleCreateInfo(UInt32 * code, Size codeSize)
+		{
+			VkShaderModuleCreateInfo shaderModuleCreateInfo{};
+			shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+			shaderModuleCreateInfo.codeSize = codeSize;
+			shaderModuleCreateInfo.pCode = code;
+			
+			return shaderModuleCreateInfo;
+		}
+		
+		inline void SubpassDependencies(std::vector<VkSubpassDependency>& subpassDependencies)
+		{
+			subpassDependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;								
+			subpassDependencies[0].dstSubpass = 0;													
+			subpassDependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;			
+			subpassDependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;	
+			subpassDependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+			subpassDependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			subpassDependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+			subpassDependencies[1].srcSubpass = 0;													
+			subpassDependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;							
+			subpassDependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;	
+			subpassDependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			subpassDependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			subpassDependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+			subpassDependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		}
+	
+		inline VkRenderPassCreateInfo RenderPassCreateInfo(std::vector<VkAttachmentDescription> attachments, std::vector<VkSubpassDependency> dependencies)
+		{
+			VkRenderPassCreateInfo renderPassInfo = {};
+			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+			renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());		
+			renderPassInfo.pAttachments = attachments.data();							
+			renderPassInfo.subpassCount = 1;												
+			renderPassInfo.pSubpasses = &subpassDescription;								
+			renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());	
+			renderPassInfo.pDependencies = dependencies.data();			
+
+			return renderPassInfo;
+		}
+	
+		inline VkSubpassDescription SubpassDescription(VkPipelineBindPoint pipelineBindPoint)
+		{
+			VkSubpassDescription subpassDescription;
+			subpassDescription.pipelineBindPoint = pipelineBindPoint;			
+			subpassDescription.colorAttachmentCount = 1;									
+			subpassDescription.pColorAttachments = nullptr;							
+			subpassDescription.pDepthStencilAttachment = nullptr;					
+			subpassDescription.inputAttachmentCount = 0;									
+			subpassDescription.pInputAttachments = nullptr;									
+			subpassDescription.preserveAttachmentCount = 0;									
+			subpassDescription.pPreserveAttachments = nullptr;								
+			subpassDescription.pResolveAttachments = nullptr;
+			
+			return subpassDescription;
+		}
+	
+		inline VkAttachmentReference AttachmentReference(UInt32 attachment, VkImageLayout layout)
+		{
+			VkAttachmentReference attachmentReference;
+			attachmentReference.attachment = attachment;													
+			attachmentReference.layout = layout;
+			
+			return attachmentReference;
+		}
+		
+		inline VkAttachmentDescription AttachmentDescription(VkFormat format)
+		{
+			VkAttachmentDescription attachmentDescription;
+			attachmentDescription.format = format;							
+			attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;									
+			attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;							
+			attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;							
+			attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;					
+			attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;				
+			attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;						
+			attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			
+			return attachmentDescription;
+		}
+	
 		inline VkFramebufferCreateInfo FramebufferCreateInfo(VkRenderPass renderPass, std::vector<VkImageView>& attachments,
 			UInt32 width, UInt32 height)
 		{
@@ -216,6 +480,14 @@ namespace Consice
 			return fenceCreateInfo;
 		}
 		
+		inline VkSubmitInfo SubmitInfo()
+		{
+			VkSubmitInfo submitInfo;
+			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+			return submitInfo;
+		}
+		
 		inline VkSubmitInfo SubmitInfo(std::vector<VkCommandBuffer>& commandBuffers)
 		{
 			VkSubmitInfo submitInfo = {};
@@ -253,7 +525,5 @@ namespace Consice
 			
 			return cmdBufferBeginInfo;
 		}
-		
-		
 	}
 }

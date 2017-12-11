@@ -18,6 +18,9 @@ namespace Concise
 		}
 	
 		#define LOG_ERROR(str) std::cout << "Error! \"" << str << "\" in " << __FILE__ << " at line " << __LINE__ << std::endl;
-
+		
+		
+		#define SAFE_DELETE if(a) delete a;
+		#define SAFE_DELETE_N if(a) delete [] a;
 	}
 }

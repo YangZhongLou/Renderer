@@ -15,18 +15,36 @@ namespace Concise
 	{
 		/** TODO, RAII */
 		vkDestroySemaphore(m_device->GetLogicalDevice(), presentCompleteSemaphore, nullptr);
-		vkDestroySemaphore(m_device->GetLogicalDevice(), renderCompleteSemaphore, nullptr);
+		vkDestroySemaphore(m_device->GetLogicalDevice(), m_renderSemaphore, nullptr);
 
 		for (auto& fence : m_fences)
 		{
 			vkDestroyFence(m_device->GetLogicalDevice(), fence, nullptr);
 		}
+		
+		SAFE_DELETE(m_vertice);
+		SAFE_DELETE(m_device);
 	}
 	
 	void Renderer::Init()
 	{
+		InitVulkan();
+		InitVeritces();
 		InitSync();
 		InitVulkanInstance(true);
+		InitPipelineCache();
+		InitDepthStencil();
+		InitFramebuffers();
+		InitRenderPass();
+		InitDescriptorPool();
+		InitDescriptorSetLayout();
+		InitDescriptorSet();
+		InitPipelines();
+	}
+	
+	void Renderer::InitVeritces()
+	{
+		m_vertices = new Vertices;
 	}
 	
 	void Renderer::InitSync()
@@ -92,6 +110,11 @@ namespace Concise
 		}
 	}
 	
+	void Renderer::InitVulkan()
+	{
+		InitVulkanInstance(false);
+	}
+	
 	void Renderer::InitVulkanInstance(bool enableValidation)
 	{
 		m_settings.validation = enableValidation;
@@ -130,7 +153,13 @@ namespace Concise
 			instanceCreateInfo.enabledLayerCount = vks::debug::validationLayerCount;
 			instanceCreateInfo.ppEnabledLayerNames = vks::debug::validationLayerNames;
 		}
-		return vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance);
+		vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance);
+	}
+	
+	void Renderer::InitVulkanDevice()
+	{
+		m_device = new Device;
+		m_device->Init();
 	}
 	
 	void Renderer::InitDescriptorPool()
@@ -201,88 +230,89 @@ namespace Concise
 	
 	void Renderer::InitRenderPass()
 	{
-		std::array<VkAttachmentDescription, 2> attachments = {};
-
+		std::vector<VkAttachmentDescription> attachments = {};
 		// Color attachment
-		attachments[0].format = m_swapchain->GetColorFormat();							
-		attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;									
-		attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;							
+		attachments[0] = VkFactory::AttachmentDescription(m_swapchain->GetColorFormat());
 		attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;							
-		attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;					
-		attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;				
-		attachments[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;						
 		attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;					
 																						
 		// Depth attachment
-		attachments[1].format = m_depthFormat;											//
-		attachments[1].samples = VK_SAMPLE_COUNT_1_BIT;						
-		attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;							// Clear depth at start of first subpass
-		attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;						// We don't need depth after render pass has finished (DONT_CARE may result in better performance)
-		attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;					// No stencil
-		attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;				// No Stencil
-		attachments[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;						// Layout at render pass start. Initial doesn't matter, so we use undefined
-		attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;	// Transition to depth/stencil attachment
+		attachments[1] = VkFactory::AttachmentDescription(m_depthFormat);											
+		attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;	
 
 		// Setup attachment references
-		VkAttachmentReference colorReference = {};
-		colorReference.attachment = 0;													// Attachment 0 is color
-		colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;				// Attachment layout used as color during the subpass
+		VkAttachmentReference colorReference = VkFactory::AttachmentReference(0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);			
+		VkAttachmentReference depthReference = VkFactory::AttachmentReference(1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);	
 
-		VkAttachmentReference depthReference = {};
-		depthReference.attachment = 1;													// Attachment 1 is color
-		depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;		// Attachment used as depth/stemcil used during the subpass
+		VkSubpassDescription subpassDescription = VkFactory::SubpassDescription(VK_PIPELINE_BIND_POINT_GRAPHICS);
+		subpassDescription.pColorAttachments = &colorReference;							
+		subpassDescription.pDepthStencilAttachment = &depthReference;					
 
-		// Setup a single subpass reference
-		VkSubpassDescription subpassDescription = {};
-		subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;			
-		subpassDescription.colorAttachmentCount = 1;									// Subpass uses one color attachment
-		subpassDescription.pColorAttachments = &colorReference;							// Reference to the color attachment in slot 0
-		subpassDescription.pDepthStencilAttachment = &depthReference;					// Reference to the depth attachment in slot 1
-		subpassDescription.inputAttachmentCount = 0;									// Input attachments can be used to sample from contents of a previous subpass
-		subpassDescription.pInputAttachments = nullptr;									// (Input attachments not used by this example)
-		subpassDescription.preserveAttachmentCount = 0;									// Preserved attachments can be used to loop (and preserve) attachments through subpasses
-		subpassDescription.pPreserveAttachments = nullptr;								// (Preserve attachments not used by this example)
-		subpassDescription.pResolveAttachments = nullptr;								// Resolve attachments are resolved at the end of a sub pass and can be used for e.g. multi sampling
+		std::vector<VkSubpassDependency> dependencies;
+		VkFactory::SubpassDependencies(dependencies);
 
-		// Setup subpass dependencies
-		// These will add the implicit attachment layout transitions specified by the attachment descriptions
-		// The actual usage layout is preserved through the layout specified in the attachment reference		
-		// Each subpass dependency will introduce a memory and execution dependency between the source and dest subpass described by
-		// srcStageMask, dstStageMask, srcAccessMask, dstAccessMask (and dependencyFlags is set)
-		// Note: VK_SUBPASS_EXTERNAL is a special constant that refers to all commands executed outside of the actual renderpass)
-		std::array<VkSubpassDependency, 2> dependencies;
+		VkRenderPassCreateInfo renderPassInfo = VkFactory::RenderPassCreateInfo(attachments, dependencies);
+		renderPassInfo.subpassCount = 1;												
+		renderPassInfo.pSubpasses = &subpassDescription;								
 
-		// First dependency at the start of the renderpass
-		// Does the transition from final to initial layout 
-		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;								// Producer of the dependency 
-		dependencies[0].dstSubpass = 0;													// Consumer is our single subpass that will wait for the execution depdendency
-		dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;			
-		dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;	
-		dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		Utils::VK_CHECK_RESULT(vkCreateRenderPass(m_device->GetLogicalDevice(), &renderPassInfo, nullptr, &m_renderPass));
+	}
+	
+	void Renderer::InitPipelineCache()
+	{
+		VkPipelineCacheCreateInfo pipelineCacheCreateInfo = VkFactory::PipelineCacheCreateInfo();
+		Utils::VK_CHECK_RESULT(vkCreatePipelineCache(m_device->GetLogicalDevice(), &pipelineCacheCreateInfo, nullptr, &m_pipelineCache))
+	}
+	
+	void Renderer::InitPipelines()
+	{
+		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = VkFactory::PipelineInputAssemblyStateCreateInfo();
+		VkPipelineRasterizationStateCreateInfo rasterizationState = VkFactory::PipelineRasterizationStateCreateInfo();
+		
+		VkPipelineRasterizationStateCreateInfo blendAttachmentState = VkFactory::VkPipelineColorBlendAttachmentState();
+		std::vector<VkPipelineRasterizationStateCreateInfo> colorBlendStateAttachments;
+		colorBlendStateAttachments.push_back(blendAttachmentState);
+		VkPipelineColorBlendStateCreateInfo colorBlendState = VkFactory::PipelineColorBlendStateCreateInfo(colorBlendStateAttachments);
 
-		// Second dependency at the end the renderpass
-		// Does the transition from the initial to the final layout
-		dependencies[1].srcSubpass = 0;													// Producer of the dependency is our single subpass
-		dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;								// Consumer are all commands outside of the renderpass
-		dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;	
-		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-		dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		VkPipelineViewportStateCreateInfo viewportState = VkFactory::PipelineViewportStateCreateInfo();
 
-		// Create the actual renderpass
-		VkRenderPassCreateInfo renderPassInfo = {};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());		// Number of attachments used by this render pass
-		renderPassInfo.pAttachments = attachments.data();								// Descriptions of the attachments used by the render pass
-		renderPassInfo.subpassCount = 1;												// We only use one subpass in this example
-		renderPassInfo.pSubpasses = &subpassDescription;								// Description of that subpass
-		renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());	// Number of subpass dependencies
-		renderPassInfo.pDependencies = dependencies.data();								// Subpass dependencies used by the render pass
+		std::vector<VkDynamicState> dynamicStateEnables;
+		dynamicStateEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+		dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
+		VkPipelineDynamicStateCreateInfo dynamicState = VkFactory::PipelineDynamicStateCreateInfo(dynamicStateEnables);
+		
+		VkPipelineDepthStencilStateCreateInfo depthStencilState = VkFactory::PipelineDepthStencilStateCreateInfo();
+		VkPipelineMultisampleStateCreateInfo multisampleState = VkFactory::PipelineMultisampleStateCreateInfo();
+				
+		std::vector<VkVertexInputBindingDescription> vertexInputBindingDecriptions;
+		VkFactory::VertexInputBindingDescription(vertexInputBindingDecriptions);
+		
+		std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions;
+		VkFactory::VertexInputAttributeDescription(vertexInputAttributeDescriptions);
 
-		VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass));
+		VkPipelineVertexInputStateCreateInfo vertexInputState = VkFactory::PipelineVertexInputStateCreateInfo(vertexInputBindingDecriptions, vertexInputAttributeDescriptions);
+
+		// Shaders
+		std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages{};
+		Shader vertexShader(m_device, "shaders/triangle/triangle.vert.spv"")
+		Shader fragmentShader(m_device, "shaders/triangle/triangle.frag.spv");
+		shaderStages[0] = VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertexShader);
+		shaderStages[1] = VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader);
+
+		VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = VkFactory::GraphicsPipelineCreateInfo(shaderStages,
+			&vertexInputState,
+			&inputAssemblyState,
+			&viewportState,
+			&rasterizationState,
+			&multisampleState,
+			&depthStencilState,
+			&colorBlendState,
+			&dynamicState,
+			m_pipelineLayout,
+			m_renderPass
+			);
+		
+		Utils::VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, m_pipelineCache, 1, &graphicsPipelineCreateInfo, nullptr, &m_pipeline));
 	}
 	
 	void Renderer::InitWindow(HINSTANCE hinstance, WNDPROC wndproc)
@@ -398,5 +428,54 @@ namespace Concise
 		SetFocus(window);
 
 		return window;
+	}
+	
+	void Renderer::Loop()
+	{
+		MSG msg;
+		bool quitMessageReceived = false;
+		while (!quitMessageReceived) {
+			while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+				if (msg.message == WM_QUIT) {
+					quitMessageReceived = true;
+					break;
+				}
+			}
+			RenderFrame();
+		}
+	}
+	
+	void Renderer::SubmitVerticesData(std::vector<Vertex> & verticesData, std::vector<UInt32> & indicesData)
+	{
+		m_vertices->Submit(verticesData, indicesData);
+	}
+	
+	void Renderer::RenderFrame()
+	{
+		Utils::VK_CHECK_RESULT(swapChain.acquireNextImage(m_presentSemaphore, &m_currentBuffer));
+
+		Utils::VK_CHECK_RESULT(vkWaitForFences(device, 1, &waitFences[m_currentBuffer], VK_TRUE, UINT64_MAX));
+		Utils::VK_CHECK_RESULT(vkResetFences(device, 1, &waitFences[m_currentBuffer]));
+
+		VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		
+		VkSubmitInfo submitInfo = VkFactory::SubmitInfo();
+		submitInfo.pWaitDstStageMask = &waitStageMask;									
+		submitInfo.pWaitSemaphores = &m_presentSemaphore;							
+		submitInfo.waitSemaphoreCount = 1;																														
+		submitInfo.pSignalSemaphores = &m_renderSemaphore;						
+		submitInfo.signalSemaphoreCount = 1;											
+		submitInfo.pCommandBuffers = &m_drawCommandBuffers[m_currentBuffer];					
+		submitInfo.commandBufferCount = 1;												
+
+		// Submit to the graphics queue passing a wait fence
+		Utils::VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, waitFences[m_currentBuffer]));
+		
+		// Present the current buffer to the swap chain
+		// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
+		// This ensures that the image is not presented to the windowing system until all commands have been submitted
+		VK_CHECK_RESULT(swapChain.queuePresent(queue, m_currentBuffer, m_renderSemaphore));
 	}
 }
