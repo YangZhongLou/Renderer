@@ -24,6 +24,8 @@ namespace Concise
 		VkSemaphoreCreateInfo m_presentSemaphore;
 		VkSemaphoreCreateInfo m_renderSemaphore;
 		
+		VkFormat m_depthFormat;
+		
 		std::vector<VkFence> m_fences;
 	public:
 		Device();
@@ -33,6 +35,7 @@ namespace Concise
 		VkDevice GetLogicalDevice() const { return m_device; }
 		VkPhysicalDevice GetPhysicalDevice() const { return m_physicalDevice; }
 		UInt32 GetMemoryTypeIndex(UInt32 typeBits, VkMemoryPropertyFlags properties);
+		VkFormat GetSupportedDepthFormat() const { return m_depthFormat; }
 		
 		VkCommandBuffer GetCommandBuffer(bool beginRecord);
 		void FlushCommandBuffer(VkCommandBuffer commandBuffer);

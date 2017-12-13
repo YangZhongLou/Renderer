@@ -63,18 +63,13 @@ namespace Concise
 		
 		VkInstance m_vkInstance;
 		
-#if defined(_WIN32)
-		HWND m_window;
-		HINSTANCE m_windowInstance;
-#endif
-
 	public:
 		Renderer();
 		~Renderer();
 	public:
 		void Init();
 		/** refactor this later */
-		void InitWindow(HINSTANCE hinstance, WNDPROC wndproc);
+		void CreateWindow(HINSTANCE hinstance, WNDPROC wndproc);
 		void BuildCommandBuffers();
 		void Loop();
 		void RenderFrame();
@@ -83,9 +78,10 @@ namespace Concise
 	private:
 		void InitVulkan();
 		void InitVulkanInstance(bool enableValidation);
+		void InitVulkanSync();
 		void InitVulkanDevice();
+		void InitSwapchain();
 		
-		void InitSync();
 		void InitVeritces();
 
 		void InitPipelineCache();

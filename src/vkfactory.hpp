@@ -13,6 +13,33 @@ namespace Consice
 {
 	namespace VkFactory
 	{	
+		inline VkDebugReportCallbackCreateInfoEXT DebugReportCallbackCreateInfo(PFN_vkDebugReportCallbackEXT pfnCallback, VkDebugReportFlagsEXT flags)
+		{
+			DebugReportCallbackCreateInfo debugReportCallbackCreateInfo = {};
+			debugReportCallbackCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
+			debugReportCallbackCreateInfo.pfnCallback = pfnCallback;
+			debugReportCallbackCreateInfo.flags = flags;
+			
+			return debugReportCallbackCreateInfo;
+		}
+		
+		inline VkSwapchainCreateInfoKHR SwapchainCreateInfoKHR()
+		{
+			VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
+			swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+			swapchainCreateInfo.pNext = NULL;
+			
+			return swapchainCreateInfo;
+		}
+	
+		inline VkWin32SurfaceCreateInfoKHR Win32SurfaceCreateInfoKHR()
+		{
+			VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {};
+			surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+			
+			return surfaceCreateInfo;
+		}
+	
 		inline VkPipelineCacheCreateInfo PipelineCacheCreateInfo()
 		{
 			VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};

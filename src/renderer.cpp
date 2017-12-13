@@ -31,7 +31,6 @@ namespace Concise
 		InitVulkan();
 		InitVeritces();
 		InitSync();
-		InitVulkanInstance(true);
 		InitPipelineCache();
 		InitDepthStencil();
 		InitFramebuffers();
@@ -40,6 +39,7 @@ namespace Concise
 		InitDescriptorSetLayout();
 		InitDescriptorSet();
 		InitPipelines();
+		
 	}
 	
 	void Renderer::InitVeritces()
@@ -47,7 +47,7 @@ namespace Concise
 		m_vertices = new Vertices;
 	}
 	
-	void Renderer::InitSync()
+	void Renderer::InitVulkanSync()
 	{
 		VkSemaphoreCreateInfo semaphoreCreateInfo = VkFactory::SemaphoreCreateInfo();
 		Utils::VK_CHECK_RESULT(vkCreateSemaphore(m_device->GetLogicalDevice(), &semaphoreCreateInfo, nullptr, &m_presentSemaphore));
@@ -110,9 +110,18 @@ namespace Concise
 		}
 	}
 	
+	void InitSwapchain()
+	{
+		m_swapchain = new Swapchain(m_vkInstance, m_device);
+		m_swapchain->Init();
+		m_swapchain->CreateSwapchain(m_width, m_height, m_settings.vsync);
+	}
+	
 	void Renderer::InitVulkan()
 	{
+		InitVulkanDevice();
 		InitVulkanInstance(false);
+		InitSwapchain();
 	}
 	
 	void Renderer::InitVulkanInstance(bool enableValidation)
@@ -145,7 +154,7 @@ namespace Concise
 			{
 				instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 			}
-			instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
+			instanceCreateInfo.enabledExtensionCount = (UInt32)instanceExtensions.size();
 			instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
 		}
 		if (m_settings.validation)
@@ -315,119 +324,9 @@ namespace Concise
 		Utils::VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, m_pipelineCache, 1, &graphicsPipelineCreateInfo, nullptr, &m_pipeline));
 	}
 	
-	void Renderer::InitWindow(HINSTANCE hinstance, WNDPROC wndproc)
+	void Renderer::CreateWindow(HINSTANCE hinstance, WNDPROC wndproc)
 	{
-		m_windowInstance = hinstance;
-
-		WNDCLASSEX wndClass;
-
-		wndClass.cbSize = sizeof(WNDCLASSEX);
-		wndClass.style = CS_HREDRAW | CS_VREDRAW;
-		wndClass.lpfnWndProc = wndproc;
-		wndClass.cbClsExtra = 0;
-		wndClass.cbWndExtra = 0;
-		wndClass.hInstance = hinstance;
-		wndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-		wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-		wndClass.lpszMenuName = NULL;
-		wndClass.lpszClassName = name.c_str();
-		wndClass.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
-
-		if (!RegisterClassEx(&wndClass))
-		{
-			std::cout << "Could not register window class!\n";
-			fflush(stdout);
-			exit(1);
-		}
-
-		int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-		int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-		if (m_settings.fullscreen)
-		{
-			DEVMODE dmScreenSettings;
-			memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
-			dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-			dmScreenSettings.dmPelsWidth = screenWidth;
-			dmScreenSettings.dmPelsHeight = screenHeight;
-			dmScreenSettings.dmBitsPerPel = 32;
-			dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-
-			if ((m_width != (uint32_t)screenWidth) && (m_height != (uint32_t)screenHeight))
-			{
-				if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
-				{
-					if (MessageBox(NULL, "Fullscreen Mode not supported!\n Switch to window mode?", "Error", MB_YESNO | MB_ICONEXCLAMATION) == IDYES)
-					{
-						m_settings.fullscreen = false;
-					}
-					else
-					{
-						return nullptr;
-					}
-				}
-			}
-
-		}
-
-		DWORD dwExStyle;
-		DWORD dwStyle;
-
-		if (m_settings.fullscreen)
-		{
-			dwExStyle = WS_EX_APPWINDOW;
-			dwStyle = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-		}
-		else
-		{
-			dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-			dwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-		}
-
-		RECT windowRect;
-		windowRect.left = 0L;
-		windowRect.top = 0L;
-		windowRect.right = m_settings.fullscreen ? (long)screenWidth : (long)width;
-		windowRect.bottom = m_settings.fullscreen ? (long)screenHeight : (long)height;
-
-		AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle);
-
-		std::string windowTitle = getWindowTitle();
-		m_window = CreateWindowEx(0,
-			name.c_str(),
-			windowTitle.c_str(),
-			dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-			0,
-			0,
-			windowRect.right - windowRect.left,
-			windowRect.bottom - windowRect.top,
-			NULL,
-			NULL,
-			hinstance,
-			NULL);
-
-		if (!m_settings.fullscreen)
-		{
-			// Center on screen
-			uint32_t x = (GetSystemMetrics(SM_CXSCREEN) - windowRect.right) / 2;
-			uint32_t y = (GetSystemMetrics(SM_CYSCREEN) - windowRect.bottom) / 2;
-			SetWindowPos(window, 0, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
-		}
-
-		if (!window)
-		{
-			printf("Could not create window!\n");
-			fflush(stdout);
-			return nullptr;
-			exit(1);
-		}
-
-		ShowWindow(window, SW_SHOW);
-		SetForegroundWindow(window);
-		SetFocus(window);
-
-		return window;
+		m_swapchain->CreateWindow(hinstance, wndproc)
 	}
 	
 	void Renderer::Loop()

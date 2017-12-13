@@ -24,7 +24,7 @@ namespace Test
 	public:
 		void InitWindow(HINSTANCE hInstance, WNDPROC wndproc)
 		{
-			renderer->InitWindow(hInstance, wndproc);
+			renderer->CreateWindow(hInstance, wndproc);
 		}
 	
 		void Init()
