@@ -1,3 +1,4 @@
+
 #Build a single test
 function(build_test test_name)
 	SET(current_dir ${CMAKE_CURRENT_SOURCE_DIR}/${test_name})

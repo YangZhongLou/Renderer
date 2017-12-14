@@ -1,6 +1,7 @@
 /*
 * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
 */
+#pragma once
 
 #include <string>
 #include <vulkan/vulkan.h>
@@ -15,9 +16,9 @@ namespace Concise
 		VkShaderModule m_shaderModule;
 		Device * m_device;
 	public:
-		Shader(Device * device, std::string& filename);
+		Shader(Device * device, std::string filename);
 		~Shader();
 	public:
 		VkShaderModule GetModule() { return m_shaderModule; }
-	}
+	};
 }

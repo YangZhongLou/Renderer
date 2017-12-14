@@ -8,6 +8,7 @@
 namespace Concise
 {
 	class Device;
+	class Renderer;
 	
 	struct SwapchainBuffer
 	{
@@ -20,6 +21,8 @@ namespace Concise
 	private:
 		VkInstance m_instance;
 		Device * m_device;		
+		Renderer * m_renderer;
+
 		VkSurfaceKHR m_surface;
 		
 		UInt32 m_imageCount;
@@ -28,12 +31,8 @@ namespace Concise
 		VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
 		VkFormat m_colorFormat;
 		VkColorSpaceKHR m_colorSpace;
-		
-		
-#if defined(_WIN32)
-		HWND m_window;
-		HINSTANCE m_windowInstance;
-#endif
+
+		UInt32 m_queueNodeIndex = UINT32_MAX;
 
 	private:
 		PFN_vkGetPhysicalDeviceSurfaceSupportKHR GetPhysicalDeviceSurfaceSupportKHR;
@@ -47,30 +46,22 @@ namespace Concise
 		PFN_vkQueuePresentKHR QueuePresentKHR;
 		
 	public:
-		Swapchain(VkInstance instance, Device * device);
+		Swapchain(VkInstance instance, Device * device, Renderer * renderer);
 		~Swapchain();
 	public:
 		void Init();
 		
-		/** TODO RAII */
 		void CreateSwapchain(UInt32 * width, UInt32 * height, bool vsync = false);
-		HWND CreateWindow(HINSTANCE hinstance, WNDPROC wndproc);
 		UInt32 GetImageCount() { return m_imageCount; }
 		SwapchainBuffer GetBuffer(UInt32 i) { return m_buffers[i]; }
 		VkFormat GetColorFormat() { return m_colorFormat; }
 		
 		VkResult AcquireNextImage(VkSemaphore presentCompleteSemaphore, UInt32 *imageIndex);
-		VkResult QueuePresent(VkQueue queue, UInt32 imageIndex, VkSemaphore waitSemaphore = VK_NULL_HANDLE)
-
-#if defined(_WIN32)
-		HWND GetWindow();
-		HINSTANCE GetWindowInstance();
-#endif
-		
+		VkResult QueuePresent(VkQueue queue, UInt32 imageIndex, VkSemaphore waitSemaphore = VK_NULL_HANDLE);
 	private:
 		/** function from dll */
 		void InitDllFunction();
 		void InitSurface();
 		void InitWin32Surface();
-	}
+	};
 }

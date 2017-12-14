@@ -1,20 +1,20 @@
 
-#include <src/renderer.h>
-#include <src/utils.h>
-#include <src/vertices.h>
+#include <renderer.h>
+#include <utils.h>
+#include <vertices.h>
 
 namespace Test
 {
-	class Renderer;
+	class Concise::Renderer;
 	
 	class Triangle
 	{
 	private:
-		Renderer * renderer;
+		Concise::Renderer * renderer;
 	public:
 		Triangle() 
 		{
-			renderer = new Renderer();
+			renderer = new Concise::Renderer();
 		}
 		~Triangle() 
 		{
@@ -24,19 +24,19 @@ namespace Test
 	public:
 		void InitWindow(HINSTANCE hInstance, WNDPROC wndproc)
 		{
-			renderer->CreateWindow(hInstance, wndproc);
+			renderer->BuildWindow(hInstance, wndproc, "", "triangle");
 		}
 	
 		void Init()
 		{
-			std::vector<Vertex> verticesData = 
+			std::vector<Concise::Vertex> verticesData =
 			{
 				{ {  1.0f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
 				{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
 				{ {  0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } }
 			};
 			
-			std::vector<UInt32> indicesData = { 0, 1, 2 };
+			std::vector<Concise::UInt32> indicesData = { 0, 1, 2 };
 			
 			renderer->SubmitVerticesData(verticesData, indicesData);
 		}

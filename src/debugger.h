@@ -3,12 +3,16 @@
 */
 #pragma once
 
+#include "types.h"
 #include <vulkan/vulkan.h>
 
 namespace Concise
 {
 	class Debugger
 	{
+	public:
+		static Int32 validationLayerCount;
+		static const char * validationLayerNames[];
 	private:
 		PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback = VK_NULL_HANDLE;
 		PFN_vkDestroyDebugReportCallbackEXT DestroyDebugReportCallback = VK_NULL_HANDLE;
@@ -22,5 +26,11 @@ namespace Concise
 		~Debugger();
 	public:
 		void Init();
-	}
+	};
+
+	Int32 Debugger::validationLayerCount = 1;
+	const char * Debugger::validationLayerNames[] = 
+	{
+		"VK_LAYER_LUNARG_standard_validation"
+	};
 }

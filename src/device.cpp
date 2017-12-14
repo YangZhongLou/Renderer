@@ -4,7 +4,9 @@
 
 #include "device.h"
 #include "utils.h"
-#include "vkfactory.h"
+#include "vkfactory.hpp"
+#include <assert.h>
+#include <iostream>
 
 namespace Concise
 {
@@ -14,9 +16,9 @@ namespace Concise
 	
 	Device::~Device()
 	{
-		if (m_commandPool)
+		if (m_cmdPool)
 		{
-			vkDestroyCommandPool(m_logicalDevice, m_commandPool, nullptr);
+			vkDestroyCommandPool(m_logicalDevice, m_cmdPool, nullptr);
 		}
 		
 		if (m_logicalDevice)
@@ -28,11 +30,11 @@ namespace Concise
 	void Device::Init()
 	{
 		UInt32 gpuCount = 0;
-		Utils::VK_CHECK_RESULT(vkEnumeratePhysicalDevices(m_vkInstance, &gpuCount, nullptr));
+		VK_CHECK_RESULT(vkEnumeratePhysicalDevices(m_vkInstance, &gpuCount, nullptr));
 		assert(gpuCount > 0);
 		
 		std::vector<VkPhysicalDevice> physicalDevices(gpuCount);
-		Utils::VK_CHECK_RESULT(vkEnumeratePhysicalDevices(instance, &gpuCount, physicalDevices.data()));
+		VK_CHECK_RESULT(vkEnumeratePhysicalDevices(m_vkInstance, &gpuCount, physicalDevices.data()));
 
 		UInt32 selectedDevice = 0;
 		m_physicalDevice = physicalDevices[selectedDevice];
@@ -61,9 +63,9 @@ namespace Concise
 			}
 		}
 
-		CreateLogicalDevice(m_enabledFeatures, m_enabledExtensions)
+		CreateLogicalDevice(m_enabledFeatures, m_enabledExtensions);
 
-		vkGetDeviceQueue(m_device, m_queueFamilyIndices.graphics, 0, &queue);
+		vkGetDeviceQueue(m_logicalDevice, m_queueFamilyIndices.graphics, 0, &m_queue);
 
 		InitSupportedDepthFormat();
 	}
@@ -81,7 +83,7 @@ namespace Concise
 		for (auto& format : depthFormats)
 		{
 			VkFormatProperties formatProps;
-			vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProps);
+			vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &formatProps);
 			if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
 			{
 				m_depthFormat = format;
@@ -96,9 +98,9 @@ namespace Concise
 	{
 		if (queueFlags & VK_QUEUE_COMPUTE_BIT)
 		{
-			for (UInt32 i = 0; i < static_cast<UInt32>(queueFamilyProperties.size()); i++)
+			for (UInt32 i = 0; i < static_cast<UInt32>(m_queueFamilyProperties.size()); i++)
 			{
-				if ((queueFamilyProperties[i].queueFlags & queueFlags) && ((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0))
+				if ((m_queueFamilyProperties[i].queueFlags & queueFlags) && ((m_queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0))
 				{
 					return i;
 					break;
@@ -108,9 +110,9 @@ namespace Concise
 
 		if (queueFlags & VK_QUEUE_TRANSFER_BIT)
 		{
-			for (UInt32 i = 0; i < static_cast<UInt32>(queueFamilyProperties.size()); i++)
+			for (UInt32 i = 0; i < static_cast<UInt32>(m_queueFamilyProperties.size()); i++)
 			{
-				if ((queueFamilyProperties[i].queueFlags & queueFlags) && ((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) && ((queueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) == 0))
+				if ((m_queueFamilyProperties[i].queueFlags & queueFlags) && ((m_queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) && ((m_queueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) == 0))
 				{
 					return i;
 					break;
@@ -118,9 +120,9 @@ namespace Concise
 			}
 		}
 
-		for (UInt32 i = 0; i < static_cast<UInt32>(queueFamilyProperties.size()); i++)
+		for (UInt32 i = 0; i < static_cast<UInt32>(m_queueFamilyProperties.size()); i++)
 		{
-			if (queueFamilyProperties[i].queueFlags & queueFlags)
+			if (m_queueFamilyProperties[i].queueFlags & queueFlags)
 			{
 				return i;
 				break;
@@ -189,7 +191,6 @@ namespace Concise
 		if (ExtensionSupported(VK_EXT_DEBUG_MARKER_EXTENSION_NAME))
 		{
 			deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-			enableDebugMarkers = true;
 		}
 
 		if (deviceExtensions.size() > 0)
@@ -209,10 +210,10 @@ namespace Concise
 	void Device::CreateCommandPool(UInt32 queueFamilyIndex, VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)
 	{
 		VkCommandPoolCreateInfo cmdPoolInfo = VkFactory::CommandPoolCreateInfo(queueFamilyIndex, createFlags);
-		Utils::VK_CHECK_RESULT(vkCreateCommandPool(m_logicalDevice, &cmdPoolInfo, nullptr, &m_cmdPool));
+		VK_CHECK_RESULT(vkCreateCommandPool(m_logicalDevice, &cmdPoolInfo, nullptr, &m_cmdPool));
 	}
 	
-	bool Device::ExtensionSupported(std::string extension);
+	bool Device::ExtensionSupported(std::string extension)
 	{
 		return (std::find(m_supportedExtensions.begin(), m_supportedExtensions.end(), extension) != m_supportedExtensions.end());
 	}
@@ -231,7 +232,7 @@ namespace Concise
 			typeBits >>= 1;
 		}
 		
-		Utils::LOG_ERROR("GetMemoryTypeIndex");
+		LOG_ERROR("GetMemoryTypeIndex");
 	}
 	
 	VkCommandBuffer Device::GetCommandBuffer(bool beginRecord)
@@ -239,12 +240,12 @@ namespace Concise
 		VkCommandBuffer cmdBuffer;
 
 		VkCommandBufferAllocateInfo cmdBufAllocateInfo = VkFactory::CommandBufferAllocateInfo(m_cmdPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-		Utils::VK_CHECK_RESULT(vkAllocateCommandBuffers(m_device, &cmdBufAllocateInfo, &cmdBuffer));
+		VK_CHECK_RESULT(vkAllocateCommandBuffers(m_logicalDevice, &cmdBufAllocateInfo, &cmdBuffer));
 
 		if (beginRecord)
 		{
 			VkCommandBufferBeginInfo cmdBufInfo = VkFactory::CommandBufferBeginInfo();
-			Utils::VK_CHECK_RESULT(vkBeginCommandBuffer(cmdBuffer, &cmdBufInfo));
+			VK_CHECK_RESULT(vkBeginCommandBuffer(cmdBuffer, &cmdBufInfo));
 		}
 
 		return cmdBuffer;
@@ -254,7 +255,7 @@ namespace Concise
 	{
 		assert(commandBuffer != VK_NULL_HANDLE);
 
-		Utils::VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
+		VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
 
 		std::vector<VkCommandBuffer> commandBuffers;
 		commandBuffers.push_back(commandBuffer);
@@ -262,14 +263,14 @@ namespace Concise
 
 		VkFenceCreateInfo fenceCreateInfo = VkFactory::FenceCreateInfo();
 		VkFence fence;
-		Utils::VK_CHECK_RESULT(vkCreateFence(m_device, &fenceCreateInfo, nullptr, &fence));
+		VK_CHECK_RESULT(vkCreateFence(m_logicalDevice, &fenceCreateInfo, nullptr, &fence));
 
-		Utils::VK_CHECK_RESULT(vkQueueSubmit(m_device, 1, &submitInfo, fence));
-		VK_CHECK_RESULT(vkWaitForFences(m_device, 1, &fence, VK_TRUE, DEFAULT_FENCE_TIMEOUT));
+		VK_CHECK_RESULT(vkQueueSubmit(m_queue, 1, &submitInfo, fence));
+		VK_CHECK_RESULT(vkWaitForFences(m_logicalDevice, 1, &fence, VK_TRUE, DEFAULT_FENCE_TIMEOUT));
 
 		/**TODO, RAII */
-		vkDestroyFence(m_device, fence, nullptr);
-		vkFreeCommandBuffers(m_device, m_cmdPool, 1, &commandBuffer);
+		vkDestroyFence(m_logicalDevice, fence, nullptr);
+		vkFreeCommandBuffers(m_logicalDevice, m_cmdPool, 1, &commandBuffer);
 	}
 	
 	void Device::EnableFeatures()

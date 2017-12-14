@@ -3,13 +3,14 @@
 */
 #pragma once
 
+#include <stdlib.h>
 #include <vector>
 #include <vulkan/vulkan.h>
 #include "types.h"
 #include "vertices.h"
 #include "shader.h"
 
-namespace Consice
+namespace Concise
 {
 	namespace VkFactory
 	{	
@@ -25,7 +26,7 @@ namespace Consice
 			return presentInfo;
 		}
 	
-		inline VkCommandPoolCreateInfo CommandPoolCreateInfo(UInt32 queueFamilyIndex, VkCommandPoolCreateFlags flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BI)
+		inline VkCommandPoolCreateInfo CommandPoolCreateInfo(UInt32 queueFamilyIndex, VkCommandPoolCreateFlags flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)
 		{
 			VkCommandPoolCreateInfo commandPoolCreateInfo = {};
 			commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -59,7 +60,7 @@ namespace Consice
 	
 		inline VkDebugReportCallbackCreateInfoEXT DebugReportCallbackCreateInfo(PFN_vkDebugReportCallbackEXT pfnCallback, VkDebugReportFlagsEXT flags)
 		{
-			DebugReportCallbackCreateInfo debugReportCallbackCreateInfo = {};
+			VkDebugReportCallbackCreateInfoEXT debugReportCallbackCreateInfo = {};
 			debugReportCallbackCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
 			debugReportCallbackCreateInfo.pfnCallback = pfnCallback;
 			debugReportCallbackCreateInfo.flags = flags;
@@ -91,12 +92,12 @@ namespace Consice
 			return pipelineCacheCreateInfo;
 		}
 	
-		inline VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, Shader * shader)
+		inline VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, Shader & shader)
 		{
 			VkPipelineShaderStageCreateInfo shaderStageCreateInfo;
 			shaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			shaderStageCreateInfo.stage = stage;
-			shaderStageCreateInfo.module = shader->GetModule();
+			shaderStageCreateInfo.module = shader.GetModule();
 			shaderStageCreateInfo.pName = "main";
 			
 			return shaderStageCreateInfo;
@@ -113,7 +114,7 @@ namespace Consice
 			vertexInputState.pVertexAttributeDescriptions = vertexAttributeDescriptions.data();
 		}
 		
-		inline void VertexInputBindingDescription(std::vector<VkVertexInputBindingDescription> & vertexBindingDescriptions)
+		inline VkVertexInputBindingDescription VertexInputBindingDescription(std::vector<VkVertexInputBindingDescription> & vertexBindingDescriptions)
 		{
 			VkVertexInputBindingDescription vertexInputBinding;
 			vertexInputBinding.binding = 0;
@@ -123,20 +124,20 @@ namespace Consice
 			return vertexInputBinding;
 		}
 	
-		void VkVertexInputAttributeDescription VertexInputAttributeDescription(std::vector<VkVertexInputAttributeDescription> & vertexInputAttributeDescriptions)
+		void VertexInputAttributeDescription(std::vector<VkVertexInputAttributeDescription> & vertexInputAttributeDescriptions)
 		{
 			VkVertexInputAttributeDescription vertexInputAttributeDescription {};
 			
 			vertexInputAttributeDescription.binding = 0;
 			vertexInputAttributeDescription.location = 0;
 			vertexInputAttributeDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
-			vertexInputAttributeDescription.offset = offsetof(Vertex, position);
+			vertexInputAttributeDescription.offset = offsetof(Vertex, positions);
 			vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
 			
-			vertexInputAttributeDescriptions.binding = 0;
-			vertexInputAttributeDescriptions.location = 1;
-			vertexInputAttributeDescriptions.format = VK_FORMAT_R32G32B32_SFLOAT;
-			vertexInputAttributeDescriptions.offset = offsetof(Vertex, color);
+			vertexInputAttributeDescription.binding = 0;
+			vertexInputAttributeDescription.location = 1;
+			vertexInputAttributeDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
+			vertexInputAttributeDescription.offset = offsetof(Vertex, colors);
 			vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
 		}
 	
@@ -174,7 +175,7 @@ namespace Consice
 			dynamicState.pDynamicStates = dynamicStates.data();
 			dynamicState.dynamicStateCount = static_cast<UInt32>(dynamicStates.size());
 			
-			return dynamicState；
+			return dynamicState;
 		}
 		
 		inline VkPipelineViewportStateCreateInfo PipelineViewportStateCreateInfo()
@@ -191,7 +192,7 @@ namespace Consice
 		{
 			VkPipelineColorBlendStateCreateInfo colorBlendState = {};
 			colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-			colorBlendState.attachmentCount = staic_cast<UInt32>(attachments.size());
+			colorBlendState.attachmentCount = static_cast<UInt32>(attachments.size());
 			colorBlendState.pAttachments = attachments.data();
 			
 			return colorBlendState;
@@ -292,14 +293,14 @@ namespace Consice
 			subpassDependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 		}
 	
-		inline VkRenderPassCreateInfo RenderPassCreateInfo(std::vector<VkAttachmentDescription> attachments, std::vector<VkSubpassDependency> dependencies)
+		inline VkRenderPassCreateInfo RenderPassCreateInfo(std::vector<VkAttachmentDescription> attachments, std::vector<VkSubpassDependency> dependencies, VkSubpassDescription * subpassDescription)
 		{
 			VkRenderPassCreateInfo renderPassInfo = {};
 			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 			renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());		
 			renderPassInfo.pAttachments = attachments.data();							
 			renderPassInfo.subpassCount = 1;												
-			renderPassInfo.pSubpasses = &subpassDescription;								
+			renderPassInfo.pSubpasses = subpassDescription;								
 			renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());	
 			renderPassInfo.pDependencies = dependencies.data();			
 
@@ -417,7 +418,7 @@ namespace Consice
 			return writeDescriptorSet;
 		}
 		
-		inline VkDescriptorSetAllocateInfo DescriptorSetAllocateInfo(VkDescriptorSetLayout descriptorSetLayout)
+		inline VkDescriptorSetAllocateInfo DescriptorSetAllocateInfo(VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool)
 		{
 			VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
 			descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -522,13 +523,13 @@ namespace Consice
 			return renderPassBeginInfo;
 		}
 		
-		inline VkCommandBufferAllocateInfo CommandBufferAllocateInfo(VkCommandPool commandPool, VkCommandBufferLevel level)
+		inline VkCommandBufferAllocateInfo CommandBufferAllocateInfo(VkCommandPool commandPool, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY, UInt32 commandBufferCount = 1)
 		{
 			VkCommandBufferAllocateInfo cmdBufAllocateInfo = {};
 			cmdBufAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 			cmdBufAllocateInfo.commandPool = commandPool;
 			cmdBufAllocateInfo.level = level;
-			cmdBufAllocateInfo.commandBufferCount = 1;
+			cmdBufAllocateInfo.commandBufferCount = commandBufferCount;
 			
 			return cmdBufAllocateInfo;
 		}
@@ -564,7 +565,7 @@ namespace Consice
 			VkSubmitInfo submitInfo = {};
 			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 			submitInfo.commandBufferCount = commandBuffers.size();
-			submitInfo.pCommandBuffers = &commandBuffers.data();
+			submitInfo.pCommandBuffers = commandBuffers.data();
 			
 			return submitInfo;
 		}

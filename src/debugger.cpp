@@ -2,10 +2,12 @@
 #include "utils.h"
 #include "vkfactory.hpp"
 #include <string>
+#include <sstream>
+#include <iostream>
 
 namespace Concise
 {
-	Debugger::Debugger(VkInstance instance, VkDebugReportFlagsEXT flags, VkDebugReportCallbackEXT callBack) : m_vkInstance(instance), m_flags(flags)
+	Debugger::Debugger(VkInstance instance, VkDebugReportFlagsEXT flags) : m_vkInstance(instance), m_flags(flags)
 	{
 	}
 	
@@ -64,10 +66,12 @@ namespace Concise
 			LOGD("%s", debugMessage.str().c_str());
 		}
 #else
-		if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
+		if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) 
+		{
 			std::cerr << debugMessage.str() << "\n";
 		}
-		else {
+		else 
+		{
 			std::cout << debugMessage.str() << "\n";
 		}
 #endif
@@ -84,7 +88,7 @@ namespace Concise
 		DebugReportMessage = reinterpret_cast<PFN_vkDebugReportMessageEXT>(vkGetInstanceProcAddr(m_vkInstance, "vkDebugReportMessageEXT"));
 
 		VkDebugReportCallbackCreateInfoEXT dbgCreateInfo = VkFactory::DebugReportCallbackCreateInfo(DebugReportCallback, m_flags);
-		Utils::VK_CHECK_RESULT(CreateDebugReportCallback(
+		VK_CHECK_RESULT(CreateDebugReportCallback(
 			m_vkInstance,
 			&dbgCreateInfo,
 			nullptr,

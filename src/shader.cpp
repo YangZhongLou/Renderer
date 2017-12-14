@@ -5,10 +5,12 @@
 #include "shader.h"
 #include "vkfactory.hpp"
 #include "utils.h"
+#include "device.h"
+#include <fstream>
 
 namespace Concise
 {
-	Shader::Shader(Device * device, std::string& filename)
+	Shader::Shader(Device * device, std::string filename)
 	{
 		m_device = device;
 		std::ifstream fin(filename, std::ios::binary | std::ios::in | std::ios::ate);
@@ -22,9 +24,9 @@ namespace Concise
 			fin.close();
 			assert(shaderSize > 0);
 			
-			VkShaderModuleCreateInfo shaderModuleCreateInfo = VkFactory::ShaderModuleCreateInfo(static_cast(UInt32)(shaderCode), shaderSize);
+			VkShaderModuleCreateInfo shaderModuleCreateInfo = VkFactory::ShaderModuleCreateInfo(reinterpret_cast<UInt32*>(shaderCode), shaderSize);
 
-			Utils::VK_CHECK_RESULT(vkCreateShaderModule(device, &moduleCreateInfo, NULL, &m_shaderModule));
+			VK_CHECK_RESULT(vkCreateShaderModule(device->GetLogicalDevice(), &shaderModuleCreateInfo, NULL, &m_shaderModule));
 
 			delete [] shaderCode;
 		}
@@ -36,6 +38,6 @@ namespace Concise
 	
 	Shader::~Shader()
 	{
-		vkDestroyShaderModule(m_device->GetLoicalDevice(), m_shaderModule, nullptr);
+		vkDestroyShaderModule(m_device->GetLogicalDevice(), m_shaderModule, nullptr);
 	}
 }

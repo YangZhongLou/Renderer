@@ -1,4 +1,4 @@
-file(GLOB src "*.cpp" "../external/imgui/imgui.cpp" "../external/imgui/imgui_draw.cpp")
+file(GLOB src "*.hpp" "*.h" "*.cpp" "../external/imgui/imgui.cpp" "../external/imgui/imgui_draw.cpp")
 
 function(make_library)
 	if(WIN32)

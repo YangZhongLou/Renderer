@@ -21,7 +21,7 @@ namespace Concise
 
 		VkPhysicalDeviceFeatures m_enabledFeatures {};
 		std::vector<const char*> m_enabledExtensions;
-		VkDevice m_device;
+		VkDevice m_logicalDevice;
 		
 		struct
 		{
@@ -46,10 +46,11 @@ namespace Concise
 		~Device();
 	public:
 		void Init();
-		VkDevice GetLogicalDevice() const { return m_device; }
+		VkDevice GetLogicalDevice() const { return m_logicalDevice; }
 		VkPhysicalDevice GetPhysicalDevice() const { return m_physicalDevice; }
 		UInt32 GetMemoryTypeIndex(UInt32 typeBits, VkMemoryPropertyFlags properties);
 		VkFormat GetSupportedDepthFormat() const { return m_depthFormat; }
+		VkCommandPool GetCommandPool() const { return m_cmdPool; }
 		VkQueue GetQueue() const { return m_queue; }
 		UInt32 GetQueueFamilyIndex(VkQueueFlagBits queueFlags);
 		
@@ -68,5 +69,5 @@ namespace Concise
 			VkQueueFlags requestedQueueTypes = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT);
 	private:
 		void InitSupportedDepthFormat();
-	}
+	};
 }

@@ -15,13 +15,13 @@ namespace Concise
 	{
 		float positions[4];
 		float colors[4];
-	}
+	};
 	
 	struct Buffer
 	{
 		VkDeviceMemory memory;
 		VkBuffer buffer;
-	}
+	};
 	
 	class Vertices
 	{
@@ -29,6 +29,7 @@ namespace Concise
 		Buffer m_vertexBuffer;
 		Buffer m_indexBuffer;
 		UInt32 m_indexCount;
+		Device * m_device;
 	public:
 		Vertices(Device * device);
 		~Vertices();
@@ -37,5 +38,5 @@ namespace Concise
 		const Buffer & GetVertexBuffer() const { return m_vertexBuffer; }
 		const Buffer & GetIndexBuffer() const { return m_indexBuffer; }
 		UInt32 GetIndexCount() const { return m_indexCount; };
-	}
+	};
 }
