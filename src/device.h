@@ -3,6 +3,7 @@
 */
 #pragma once
 
+#include <vector>
 #include <vulkan/vulkan.h>
 #include "types.h"
 
@@ -15,8 +16,19 @@ namespace Concise
 		VkPhysicalDeviceProperties m_deviceProperties;
 		VkPhysicalDeviceFeatures m_deviceFeatures;
 		VkPhysicalDeviceMemoryProperties m_deviceMemoryProperties;
+		std::vector<VkQueueFamilyProperties> m_queueFamilyProperties;
+		std::vector<std::string> m_supportedExtensions;
+
 		VkPhysicalDeviceFeatures m_enabledFeatures {};
+		std::vector<const char*> m_enabledExtensions;
 		VkDevice m_device;
+		
+		struct
+		{
+			UInt32 graphics;
+			UInt32 compute;
+			UInt32 transfer;
+		} m_queueFamilyIndices;
 		
 		VkQueue m_queue;
 		VkCommandPool m_cmdPool;
@@ -27,8 +39,10 @@ namespace Concise
 		VkFormat m_depthFormat;
 		
 		std::vector<VkFence> m_fences;
+		
+		VkInstance m_vkInstance;
 	public:
-		Device();
+		Device(VkInstance instance);
 		~Device();
 	public:
 		void Init();
@@ -36,8 +50,23 @@ namespace Concise
 		VkPhysicalDevice GetPhysicalDevice() const { return m_physicalDevice; }
 		UInt32 GetMemoryTypeIndex(UInt32 typeBits, VkMemoryPropertyFlags properties);
 		VkFormat GetSupportedDepthFormat() const { return m_depthFormat; }
+		VkQueue GetQueue() const { return m_queue; }
+		UInt32 GetQueueFamilyIndex(VkQueueFlagBits queueFlags);
+		
+		bool ExtensionSupported(std::string extension);
 		
 		VkCommandBuffer GetCommandBuffer(bool beginRecord);
 		void FlushCommandBuffer(VkCommandBuffer commandBuffer);
+		
+		/** TODO */
+		void EnableFeatures();
+		
+		void CreateCommandPool(UInt32 queueFamilyIndex, VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+		void CreateLogicalDevice(VkPhysicalDeviceFeatures & enabledFeatures, 
+			std::vector<const char*> enabledExtensions, 
+			bool useSwapChain = true, 
+			VkQueueFlags requestedQueueTypes = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT);
+	private:
+		void InitSupportedDepthFormat();
 	}
 }

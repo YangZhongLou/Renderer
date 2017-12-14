@@ -325,7 +325,7 @@ namespace Concise
 			};
 		}
 
-		VkSwapchainKHR oldSwapchain = m_swapChain;
+		VkSwapchainKHR oldSwapchain = m_swapchain;
 		VkSwapchainCreateInfoKHR swapchainCreateInfo = VkFactory::SwapchainCreateInfoKHR();
 		swapchainCreateInfo.surface = m_surface;
 		swapchainCreateInfo.minImageCount = desiredNumberOfSwapchainImages;
@@ -350,7 +350,7 @@ namespace Concise
 			swapchainCreateInfo.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 		}
 
-		Utils::VK_CHECK_RESULT(fpCreateSwapchainKHR(m_device->GetLogicalDevice(), &swapchainCreateInfo, nullptr, &m_swapChain));
+		Utils::VK_CHECK_RESULT(fpCreateSwapchainKHR(m_device->GetLogicalDevice(), &swapchainCreateInfo, nullptr, &m_swapchain));
 
 		if (oldSwapchain != VK_NULL_HANDLE) 
 		{ 
@@ -360,10 +360,10 @@ namespace Concise
 			}
 			fpDestroySwapchainKHR(m_device->GetLogicalDevice(), oldSwapchain, nullptr);
 		}
-		Utils::VK_CHECK_RESULT(fpGetSwapchainImagesKHR(m_device->GetLogicalDevice(), m_swapChain, &m_imageCount, NULL));
+		Utils::VK_CHECK_RESULT(fpGetSwapchainImagesKHR(m_device->GetLogicalDevice(), m_swapchain, &m_imageCount, NULL));
 
 		m_images.resize(m_imageCount);
-		Utils::VK_CHECK_RESULT(fpGetSwapchainImagesKHR(m_device->GetLogicalDevice(), m_swapChain, &m_imageCount, m_images.data()));
+		Utils::VK_CHECK_RESULT(fpGetSwapchainImagesKHR(m_device->GetLogicalDevice(), m_swapchain, &m_imageCount, m_images.data()));
 
 		m_buffers.resize(m_imageCount);
 		for (UInt32 i = 0; i < m_imageCount; i++)
@@ -399,5 +399,22 @@ namespace Concise
 	HINSTANCE Swapchain::GetWindowInstance()
 	{
 		return m_windowInstance;
+	}
+	
+	VkResult Swapchain::AcquireNextImage(VkSemaphore presentCompleteSemaphore, UInt32 * imageIndex)
+	{
+		return AcquireNextImageKHR(m_device->GetLogicalDevice(), m_swapchain, UINT64_MAX, presentCompleteSemaphore, (VkFence)nullptr, imageIndex);
+	}
+	
+	VkResult Swapchain::QueuePresent(VkQueue queue, UInt32 imageIndex, VkSemaphore waitSemaphore = VK_NULL_HANDL)
+	{
+		VkPresentInfoKHR presentInfo = VkFactory::PresentInfoKHR(&m_swapchain, imageIndex);
+		if (waitSemaphore != VK_NULL_HANDLE)
+		{
+			presentInfo.pWaitSemaphores = &waitSemaphore;
+			presentInfo.waitSemaphoreCount = 1;
+		}
+		
+		return QueuePresentKHR(queue, &presentInfo);
 	}
 }

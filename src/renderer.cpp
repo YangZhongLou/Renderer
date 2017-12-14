@@ -14,8 +14,8 @@ namespace Concise
 	Renderer::~Renderer()
 	{
 		/** TODO, RAII */
-		vkDestroySemaphore(m_device->GetLogicalDevice(), presentCompleteSemaphore, nullptr);
-		vkDestroySemaphore(m_device->GetLogicalDevice(), m_renderSemaphore, nullptr);
+		vkDestroySemaphore(m_device->GetLogicalDevice(), m_presentCompleteSemaphore, nullptr);
+		vkDestroySemaphore(m_device->GetLogicalDevice(), m_renderCompleteSemaphore, nullptr);
 
 		for (auto& fence : m_fences)
 		{
@@ -39,7 +39,6 @@ namespace Concise
 		InitDescriptorSetLayout();
 		InitDescriptorSet();
 		InitPipelines();
-		
 	}
 	
 	void Renderer::InitVeritces()
@@ -50,8 +49,8 @@ namespace Concise
 	void Renderer::InitVulkanSync()
 	{
 		VkSemaphoreCreateInfo semaphoreCreateInfo = VkFactory::SemaphoreCreateInfo();
-		Utils::VK_CHECK_RESULT(vkCreateSemaphore(m_device->GetLogicalDevice(), &semaphoreCreateInfo, nullptr, &m_presentSemaphore));
-		Utils::VK_CHECK_RESULT(vkCreateSemaphore(m_device->GetLogicalDevice(), &semaphoreCreateInfo, nullptr, &m_renderSemaphore));
+		Utils::VK_CHECK_RESULT(vkCreateSemaphore(m_device->GetLogicalDevice(), &semaphoreCreateInfo, nullptr, &m_presentCompleteSemaphore));
+		Utils::VK_CHECK_RESULT(vkCreateSemaphore(m_device->GetLogicalDevice(), &semaphoreCreateInfo, nullptr, &m_renderCompleteSemaphore));
 		
 		VkFenceCreateInfo fenceCreateInfo = VkFactory::FenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
 		m_fences.resize(m_drawCmdBuffers.size());
@@ -119,8 +118,9 @@ namespace Concise
 	
 	void Renderer::InitVulkan()
 	{
-		InitVulkanDevice();
 		InitVulkanInstance(false);
+		InitVulkanDebugger();
+		InitVulkanDevice();
 		InitSwapchain();
 	}
 	
@@ -169,6 +169,18 @@ namespace Concise
 	{
 		m_device = new Device;
 		m_device->Init();
+	}
+	
+	void Renderer::InitVulkanDebugger()
+	{
+		if (!m_settings.validation)
+		{
+			return;
+		}
+
+		VkDebugReportFlagsEXT debugReportFlags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
+		m_debugger = new Debugger(m_vkInstance, debugReportFlags);
+		m_debugger->Init();
 	}
 	
 	void Renderer::InitDescriptorPool()
@@ -353,28 +365,24 @@ namespace Concise
 	
 	void Renderer::RenderFrame()
 	{
-		Utils::VK_CHECK_RESULT(swapChain.acquireNextImage(m_presentSemaphore, &m_currentBuffer));
+		Utils::VK_CHECK_RESULT(m_swapchain->AcquireNextImage(m_presentCompleteSemaphore, &m_currentBuffer));
 
-		Utils::VK_CHECK_RESULT(vkWaitForFences(device, 1, &waitFences[m_currentBuffer], VK_TRUE, UINT64_MAX));
-		Utils::VK_CHECK_RESULT(vkResetFences(device, 1, &waitFences[m_currentBuffer]));
+		Utils::VK_CHECK_RESULT(vkWaitForFences(m_device->GetLogicalDevice(), 1, &m_fences[m_currentBuffer], VK_TRUE, UINT64_MAX));
+		Utils::VK_CHECK_RESULT(vkResetFences(m_device->GetLogicalDevice(), 1, &m_fences[m_currentBuffer]));
 
 		VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		
 		VkSubmitInfo submitInfo = VkFactory::SubmitInfo();
 		submitInfo.pWaitDstStageMask = &waitStageMask;									
-		submitInfo.pWaitSemaphores = &m_presentSemaphore;							
+		submitInfo.pWaitSemaphores = &m_presentCompleteSemaphore;							
 		submitInfo.waitSemaphoreCount = 1;																														
-		submitInfo.pSignalSemaphores = &m_renderSemaphore;						
+		submitInfo.pSignalSemaphores = &m_renderCompleteSemaphore;						
 		submitInfo.signalSemaphoreCount = 1;											
 		submitInfo.pCommandBuffers = &m_drawCommandBuffers[m_currentBuffer];					
 		submitInfo.commandBufferCount = 1;												
 
-		// Submit to the graphics queue passing a wait fence
-		Utils::VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, waitFences[m_currentBuffer]));
+		Utils::VK_CHECK_RESULT(vkQueueSubmit(m_device->GetQueue(), 1, &submitInfo, m_fences[m_currentBuffer]));
 		
-		// Present the current buffer to the swap chain
-		// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
-		// This ensures that the image is not presented to the windowing system until all commands have been submitted
-		VK_CHECK_RESULT(swapChain.queuePresent(queue, m_currentBuffer, m_renderSemaphore));
+		Utils::VK_CHECK_RESULT(m_swapchain->QueuePresent((m_device->GetQueue(), m_currentBuffer, m_renderCompleteSemaphore));
 	}
 }

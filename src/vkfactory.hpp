@@ -13,6 +13,50 @@ namespace Consice
 {
 	namespace VkFactory
 	{	
+		inline VkPresentInfoKHR PresentInfoKHR(VkSwapchainKHR * swapchain, UInt32 imageIndex)
+		{
+			VkPresentInfoKHR presentInfo = {};
+			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+			presentInfo.pNext = NULL;
+			presentInfo.swapchainCount = 1;
+			presentInfo.pSwapchains = swapchain;
+			presentInfo.pImageIndices = &imageIndex;
+			
+			return presentInfo;
+		}
+	
+		inline VkCommandPoolCreateInfo CommandPoolCreateInfo(UInt32 queueFamilyIndex, VkCommandPoolCreateFlags flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BI)
+		{
+			VkCommandPoolCreateInfo commandPoolCreateInfo = {};
+			commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+			commandPoolCreateInfo.queueFamilyIndex = queueFamilyIndex;
+			commandPoolCreateInfo.flags = flags;
+			
+			return commandPoolCreateInfo;
+		}
+	
+		inline VkDeviceCreateInfo DeviceCreateInfo(std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, VkPhysicalDeviceFeatures enabledFeatures)
+		{
+			VkDeviceCreateInfo deviceCreateInfo = {};
+			deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+			deviceCreateInfo.queueCreateInfoCount = static_cast<UInt32>(queueCreateInfos.size());;
+			deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+			deviceCreateInfo.pEnabledFeatures = &enabledFeatures;
+			
+			return deviceCreateInfo;
+		}
+	
+		inline VkDeviceQueueCreateInfo DeviceQueueCreateInfo(UInt32 queueFamilyIndex,  const float * queuePriorities)
+		{
+			VkDeviceQueueCreateInfo deviceQueueCreateInfo{};
+			deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			deviceQueueCreateInfo.queueFamilyIndex = queueFamilyIndex;
+			deviceQueueCreateInfo.queueCount = 1;
+			deviceQueueCreateInfo.pQueuePriorities = queuePriorities;
+			
+			return deviceQueueCreateInfo;
+		}
+	
 		inline VkDebugReportCallbackCreateInfoEXT DebugReportCallbackCreateInfo(PFN_vkDebugReportCallbackEXT pfnCallback, VkDebugReportFlagsEXT flags)
 		{
 			DebugReportCallbackCreateInfo debugReportCallbackCreateInfo = {};

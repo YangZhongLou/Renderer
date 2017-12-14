@@ -8,124 +8,218 @@
 
 namespace Concise
 {
-	Device::Device()
+	Device::Device(VkInstance instance) : m_vkInstance(instance)
 	{
-		
 	}
 	
 	Device::~Device()
 	{
+		if (m_commandPool)
+		{
+			vkDestroyCommandPool(m_logicalDevice, m_commandPool, nullptr);
+		}
 		
+		if (m_logicalDevice)
+		{
+			vkDestroyDevice(m_logicalDevice, nullptr);
+		}
 	}
 	
-	Device::Init()
+	void Device::Init()
 	{
-		if (settings.validation)
+		UInt32 gpuCount = 0;
+		Utils::VK_CHECK_RESULT(vkEnumeratePhysicalDevices(m_vkInstance, &gpuCount, nullptr));
+		assert(gpuCount > 0);
+		
+		std::vector<VkPhysicalDevice> physicalDevices(gpuCount);
+		Utils::VK_CHECK_RESULT(vkEnumeratePhysicalDevices(instance, &gpuCount, physicalDevices.data()));
+
+		UInt32 selectedDevice = 0;
+		m_physicalDevice = physicalDevices[selectedDevice];
+
+		vkGetPhysicalDeviceProperties(m_physicalDevice, &m_deviceProperties);
+		vkGetPhysicalDeviceFeatures(m_physicalDevice, &m_deviceFeatures);
+		vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &m_deviceMemoryProperties);
+		
+		UInt32 queueFamilyCount;
+		vkGetPhysicalDeviceQueueFamilyProperties(m_physicalDevice, &queueFamilyCount, nullptr);
+		assert(queueFamilyCount > 0);
+		m_queueFamilyProperties.resize(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(m_physicalDevice, &queueFamilyCount, m_queueFamilyProperties.data());
+
+		UInt32 extCount = 0;
+		vkEnumerateDeviceExtensionProperties(m_physicalDevice, nullptr, &extCount, nullptr);
+		if (extCount > 0)
 		{
-			VkDebugReportFlagsEXT debugReportFlags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-			vks::debug::setupDebugging(instance, debugReportFlags, VK_NULL_HANDLE);
-		}
-
-	// Physical device
-	uint32_t gpuCount = 0;
-	// Get number of available physical devices
-	VK_CHECK_RESULT(vkEnumeratePhysicalDevices(instance, &gpuCount, nullptr));
-	assert(gpuCount > 0);
-	// Enumerate devices
-	std::vector<VkPhysicalDevice> physicalDevices(gpuCount);
-	err = vkEnumeratePhysicalDevices(instance, &gpuCount, physicalDevices.data());
-	if (err) {
-		vks::tools::exitFatal("Could not enumerate physical devices : \n" + vks::tools::errorString(err), "Fatal error", !benchmark.active);
-	}
-
-	// GPU selection
-
-	// Select physical device to be used for the Vulkan example
-	// Defaults to the first device unless specified by command line
-	uint32_t selectedDevice = 0;
-
-#if !defined(VK_USE_PLATFORM_ANDROID_KHR)	
-	// GPU selection via command line argument
-	for (size_t i = 0; i < args.size(); i++)
-	{
-		// Select GPU
-		if ((args[i] == std::string("-g")) || (args[i] == std::string("-gpu")))
-		{
-			char* endptr;
-			uint32_t index = strtol(args[i + 1], &endptr, 10);
-			if (endptr != args[i + 1]) 
-			{ 
-				if (index > gpuCount - 1)
-				{
-					std::cerr << "Selected device index " << index << " is out of range, reverting to device 0 (use -listgpus to show available Vulkan devices)" << std::endl;
-				} 
-				else
-				{
-					std::cout << "Selected Vulkan device " << index << std::endl;
-					selectedDevice = index;
-				}
-			};
-			break;
-		}
-		// List available GPUs
-		if (args[i] == std::string("-listgpus"))
-		{
-			uint32_t gpuCount = 0;
-			VK_CHECK_RESULT(vkEnumeratePhysicalDevices(instance, &gpuCount, nullptr));
-			if (gpuCount == 0) 
+			std::vector<VkExtensionProperties> extensions(extCount);
+			if (vkEnumerateDeviceExtensionProperties(m_physicalDevice, nullptr, &extCount, &extensions.front()) == VK_SUCCESS)
 			{
-				std::cerr << "No Vulkan devices found!" << std::endl;
-			}
-			else 
-			{
-				// Enumerate devices
-				std::cout << "Available Vulkan devices" << std::endl;
-				std::vector<VkPhysicalDevice> devices(gpuCount);
-				VK_CHECK_RESULT(vkEnumeratePhysicalDevices(instance, &gpuCount, devices.data()));
-				for (uint32_t i = 0; i < gpuCount; i++) {
-					VkPhysicalDeviceProperties deviceProperties;
-					vkGetPhysicalDeviceProperties(devices[i], &deviceProperties);
-					std::cout << "Device [" << i << "] : " << deviceProperties.deviceName << std::endl;
-					std::cout << " Type: " << vks::tools::physicalDeviceTypeString(deviceProperties.deviceType) << std::endl;
-					std::cout << " API: " << (deviceProperties.apiVersion >> 22) << "." << ((deviceProperties.apiVersion >> 12) & 0x3ff) << "." << (deviceProperties.apiVersion & 0xfff) << std::endl;
+				for (auto ext : extensions)
+				{
+					m_supportedExtensions.push_back(ext.extensionName);
 				}
 			}
 		}
+
+		CreateLogicalDevice(m_enabledFeatures, m_enabledExtensions)
+
+		vkGetDeviceQueue(m_device, m_queueFamilyIndices.graphics, 0, &queue);
+
+		InitSupportedDepthFormat();
 	}
-#endif
+	
+	void Device::InitSupportedDepthFormat()
+	{
+		std::vector<VkFormat> depthFormats = {
+			VK_FORMAT_D32_SFLOAT_S8_UINT,
+			VK_FORMAT_D32_SFLOAT,
+			VK_FORMAT_D24_UNORM_S8_UINT,
+			VK_FORMAT_D16_UNORM_S8_UINT,
+			VK_FORMAT_D16_UNORM
+		};
 
-	physicalDevice = physicalDevices[selectedDevice];
-
-	// Store properties (including limits), features and memory properties of the phyiscal device (so that examples can check against them)
-	vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
-	vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
-	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &deviceMemoryProperties);
-
-	// Derived examples can override this to set actual features (based on above readings) to enable for logical device creation
-	getEnabledFeatures();
-
-	// Vulkan device creation
-	// This is handled by a separate class that gets a logical device representation
-	// and encapsulates functions related to a device
-	vulkanDevice = new vks::VulkanDevice(physicalDevice);
-	VkResult res = vulkanDevice->createLogicalDevice(enabledFeatures, enabledExtensions);
-	if (res != VK_SUCCESS) {
-		vks::tools::exitFatal("Could not create Vulkan device: \n" + vks::tools::errorString(res), "Fatal error", !benchmark.active);
+		for (auto& format : depthFormats)
+		{
+			VkFormatProperties formatProps;
+			vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProps);
+			if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+			{
+				m_depthFormat = format;
+				return;
+			}
+		}
+		
+		assert(false);
 	}
-	device = vulkanDevice->logicalDevice;
+	
+	UInt32 Device::GetQueueFamilyIndex(VkQueueFlagBits queueFlags)
+	{
+		if (queueFlags & VK_QUEUE_COMPUTE_BIT)
+		{
+			for (UInt32 i = 0; i < static_cast<UInt32>(queueFamilyProperties.size()); i++)
+			{
+				if ((queueFamilyProperties[i].queueFlags & queueFlags) && ((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0))
+				{
+					return i;
+					break;
+				}
+			}
+		}
 
-	// Get a graphics queue from the device
-	vkGetDeviceQueue(device, vulkanDevice->queueFamilyIndices.graphics, 0, &queue);
+		if (queueFlags & VK_QUEUE_TRANSFER_BIT)
+		{
+			for (UInt32 i = 0; i < static_cast<UInt32>(queueFamilyProperties.size()); i++)
+			{
+				if ((queueFamilyProperties[i].queueFlags & queueFlags) && ((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) && ((queueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) == 0))
+				{
+					return i;
+					break;
+				}
+			}
+		}
 
-	// Find a suitable depth format
-	VkBool32 validDepthFormat = vks::tools::getSupportedDepthFormat(physicalDevice, &depthFormat);
-	assert(validDepthFormat);
+		for (UInt32 i = 0; i < static_cast<UInt32>(queueFamilyProperties.size()); i++)
+		{
+			if (queueFamilyProperties[i].queueFlags & queueFlags)
+			{
+				return i;
+				break;
+			}
+		}
+		
+		assert(false);
+	}
+	
+	void Device::CreateLogicalDevice(VkPhysicalDeviceFeatures & enabledFeatures, 
+			std::vector<const char*> enabledExtensions, 
+			bool useSwapChain = true, 
+			VkQueueFlags requestedQueueTypes = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)
+	{
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
 
+		const float defaultQueuePriority(0.0f);
+
+		if (requestedQueueTypes & VK_QUEUE_GRAPHICS_BIT)
+		{
+			m_queueFamilyIndices.graphics = GetQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
+			VkDeviceQueueCreateInfo queueInfo = VkFactory::DeviceQueueCreateInfo(m_queueFamilyIndices.graphics, &defaultQueuePriority);
+			queueCreateInfos.push_back(queueInfo);
+		}
+		else
+		{
+			m_queueFamilyIndices.graphics = VK_NULL_HANDLE;
+		}
+
+		if (requestedQueueTypes & VK_QUEUE_COMPUTE_BIT)
+		{
+			m_queueFamilyIndices.compute = GetQueueFamilyIndex(VK_QUEUE_COMPUTE_BIT);
+			if (m_queueFamilyIndices.compute != m_queueFamilyIndices.graphics)
+			{
+				VkDeviceQueueCreateInfo queueInfo = VkFactory::DeviceQueueCreateInfo(m_queueFamilyIndices.compute, &defaultQueuePriority);;
+				queueCreateInfos.push_back(queueInfo);
+			}
+		}
+		else
+		{
+			m_queueFamilyIndices.compute = m_queueFamilyIndices.graphics;
+		}
+
+		if (requestedQueueTypes & VK_QUEUE_TRANSFER_BIT)
+		{
+			m_queueFamilyIndices.transfer = GetQueueFamilyIndex(VK_QUEUE_TRANSFER_BIT);
+			if ((m_queueFamilyIndices.transfer != m_queueFamilyIndices.graphics) && (m_queueFamilyIndices.transfer != m_queueFamilyIndices.compute))
+			{
+				VkDeviceQueueCreateInfo queueInfo = VkFactory::DeviceQueueCreateInfo(m_queueFamilyIndices.transfer, &defaultQueuePriority);
+				queueCreateInfos.push_back(queueInfo);
+			}
+		}
+		else
+		{
+			m_queueFamilyIndices.transfer = m_queueFamilyIndices.graphics;
+		}
+
+		std::vector<const char*> deviceExtensions(enabledExtensions);
+		if (useSwapChain)
+		{
+			deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+		}
+
+		VkDeviceCreateInfo deviceCreateInfo = VkFactory::DeviceCreateInfo(queueCreateInfos, enabledFeatures);
+
+		if (ExtensionSupported(VK_EXT_DEBUG_MARKER_EXTENSION_NAME))
+		{
+			deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+			enableDebugMarkers = true;
+		}
+
+		if (deviceExtensions.size() > 0)
+		{
+			deviceCreateInfo.enabledExtensionCount = (UInt32)deviceExtensions.size();
+			deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+		}
+
+		VkResult result = vkCreateDevice(m_physicalDevice, &deviceCreateInfo, nullptr, &m_logicalDevice);
+
+		if (result == VK_SUCCESS)
+		{
+			CreateCommandPool(m_queueFamilyIndices.graphics);
+		}
+	}
+	
+	void Device::CreateCommandPool(UInt32 queueFamilyIndex, VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)
+	{
+		VkCommandPoolCreateInfo cmdPoolInfo = VkFactory::CommandPoolCreateInfo(queueFamilyIndex, createFlags);
+		Utils::VK_CHECK_RESULT(vkCreateCommandPool(m_logicalDevice, &cmdPoolInfo, nullptr, &m_cmdPool));
+	}
+	
+	bool Device::ExtensionSupported(std::string extension);
+	{
+		return (std::find(m_supportedExtensions.begin(), m_supportedExtensions.end(), extension) != m_supportedExtensions.end());
 	}
 	
 	UInt32 Device::GetMemoryTypeIndex(UInt32 typeBits, VkMemoryPropertyFlags properties)
 	{
-		for (uint32_t i = 0; i < m_deviceMemoryProperties.memoryTypeCount; i++)
+		for (UInt32 i = 0; i < m_deviceMemoryProperties.memoryTypeCount; i++)
 		{
 			if ((typeBits & 1) == 1)
 			{
@@ -176,5 +270,10 @@ namespace Concise
 		/**TODO, RAII */
 		vkDestroyFence(m_device, fence, nullptr);
 		vkFreeCommandBuffers(m_device, m_cmdPool, 1, &commandBuffer);
+	}
+	
+	void Device::EnableFeatures()
+	{
+		
 	}
 }

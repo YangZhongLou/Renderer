@@ -26,6 +26,7 @@ namespace Concise
 		std::vector<VkCommandBuffer> m_drawCommandBuffers;
 		
 		Device * m_device;
+		Debugger * m_debugger;
 		
 		UInt32 m_width;
 		UInt32 m_Height;
@@ -62,7 +63,6 @@ namespace Concise
 		} m_settings;
 		
 		VkInstance m_vkInstance;
-		
 	public:
 		Renderer();
 		~Renderer();
@@ -80,6 +80,7 @@ namespace Concise
 		void InitVulkanInstance(bool enableValidation);
 		void InitVulkanSync();
 		void InitVulkanDevice();
+		void InitVulkanDebugger();
 		void InitSwapchain();
 		
 		void InitVeritces();
@@ -95,7 +96,5 @@ namespace Concise
 		/** refactor this later */
 		void InitDescriptorSetLayout();
 		void InitDescriptorSet();
-		
-		
 	}
 }

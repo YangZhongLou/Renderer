@@ -25,7 +25,7 @@ namespace Concise
 		UInt32 m_imageCount;
 		std::vector<VkImage> m_images;
 		std::vector<SwapchainBuffer> m_buffers;
-		VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
+		VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
 		VkFormat m_colorFormat;
 		VkColorSpaceKHR m_colorSpace;
 		
@@ -59,8 +59,9 @@ namespace Concise
 		SwapchainBuffer GetBuffer(UInt32 i) { return m_buffers[i]; }
 		VkFormat GetColorFormat() { return m_colorFormat; }
 		
-		VkResult AcquireNextImage();
-		
+		VkResult AcquireNextImage(VkSemaphore presentCompleteSemaphore, UInt32 *imageIndex);
+		VkResult QueuePresent(VkQueue queue, UInt32 imageIndex, VkSemaphore waitSemaphore = VK_NULL_HANDLE)
+
 #if defined(_WIN32)
 		HWND GetWindow();
 		HINSTANCE GetWindowInstance();
