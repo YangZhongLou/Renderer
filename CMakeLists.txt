@@ -13,9 +13,9 @@ function(init_cmake)
 endfunction(init_cmake)
 init_cmake()
 
-set(NAME Renderer)
+set(NAME Concise)
 
-project($(NAME))
+project(${NAME})
 
 include_directories(external)
 include_directories(external/glm)

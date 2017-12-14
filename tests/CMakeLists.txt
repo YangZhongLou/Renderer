@@ -22,13 +22,13 @@ function(build_test test_name)
 	endif(WIN32)
 endfunction(build_test)
 
+set(tests
+	triangle)
+
 function(build_tests)
 	foreach(test_name ${tests})
-		buildExample(${test_name})
+		build_test(${test_name})
 	endforeach(test_name)
 endfunction(build_tests)
 
-set(tests
-	triangle)
-		
 build_tests()
