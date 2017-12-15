@@ -301,7 +301,7 @@ namespace Concise
 			subpassDependencies.push_back(subpassDependency);
 		}
 	
-		inline VkRenderPassCreateInfo RenderPassCreateInfo(std::vector<VkAttachmentDescription> attachments, std::vector<VkSubpassDependency> dependencies, VkSubpassDescription * subpassDescription)
+		inline VkRenderPassCreateInfo RenderPassCreateInfo(std::vector<VkAttachmentDescription> & attachments, std::vector<VkSubpassDependency> & dependencies, VkSubpassDescription * subpassDescription)
 		{
 			VkRenderPassCreateInfo renderPassInfo = {};
 			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -318,6 +318,7 @@ namespace Concise
 		inline VkSubpassDescription SubpassDescription(VkPipelineBindPoint pipelineBindPoint)
 		{
 			VkSubpassDescription subpassDescription;
+			subpassDescription.flags = VK_SUBPASS_DESCRIPTION_PER_VIEW_ATTRIBUTES_BIT_NVX;
 			subpassDescription.pipelineBindPoint = pipelineBindPoint;			
 			subpassDescription.colorAttachmentCount = 1;									
 			subpassDescription.pColorAttachments = nullptr;							
@@ -343,6 +344,7 @@ namespace Concise
 		inline VkAttachmentDescription AttachmentDescription(VkFormat format)
 		{
 			VkAttachmentDescription attachmentDescription;
+			attachmentDescription.flags = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;
 			attachmentDescription.format = format;							
 			attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;									
 			attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;							

@@ -29,6 +29,7 @@ namespace Concise
 		SAFE_DELETE(m_uniforms);
 		SAFE_DELETE(m_vertices);
 		SAFE_DELETE(m_swapchain);
+		SAFE_DELETE(m_debugger);
 		SAFE_DELETE(m_device);
 
 		vkDestroyInstance(m_vkInstance, nullptr);
@@ -37,16 +38,17 @@ namespace Concise
 	void Renderer::Init()
 	{
 		m_prepared = false;
+		InitConsole("Concise");
 		InitVulkan();
 		InitUniforms();
 		InitVeritces();
-		InitPipelineCache();
 		InitDepthStencil();
-		InitFramebuffers();
 		InitRenderPass();
+		InitFramebuffers();
 		InitDescriptorPool();
 		InitDescriptorSetLayout();
 		InitDescriptorSet();
+		InitPipelineCache();
 		InitPipelines();
 		m_prepared = true;
 	}
@@ -118,7 +120,7 @@ namespace Concise
 	
 	void Renderer::InitVulkan()
 	{
-		InitVulkanInstance(false);
+		InitVulkanInstance(true);
 		InitVulkanDebugger();
 		InitVulkanDevice();
 		InitSwapchain();
@@ -364,6 +366,16 @@ namespace Concise
 		VK_CHECK_RESULT(vkCreateGraphicsPipelines(m_device->GetLogicalDevice(), m_pipelineCache, 1, &graphicsPipelineCreateInfo, nullptr, &m_pipeline));
 	}
 	
+	void Renderer::InitConsole(std::string title)
+	{
+		AllocConsole();
+		AttachConsole(GetCurrentProcessId());
+		FILE *stream;
+		freopen_s(&stream, "CONOUT$", "w+", stdout);
+		freopen_s(&stream, "CONOUT$", "w+", stderr);
+		SetConsoleTitle(TEXT(title.c_str()));
+	}
+
 	HWND Renderer::BuildWindow(HINSTANCE hinstance, WNDPROC wndproc, std::string name, std::string windowTitle)
 	{
 		m_windowInstance = hinstance;

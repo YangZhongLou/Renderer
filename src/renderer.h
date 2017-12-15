@@ -100,6 +100,8 @@ namespace Concise
 	public:
 		void Init();
 		/** refactor this later */
+
+		void InitConsole(std::string title);
 		HWND BuildWindow(HINSTANCE hinstance, WNDPROC wndproc, std::string name = "", std::string windowTitle = "");
 		void HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 		void KeyPressed(UInt32) {}

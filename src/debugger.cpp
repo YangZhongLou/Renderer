@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 
 namespace Concise
 {
@@ -16,7 +17,7 @@ namespace Concise
 	Debugger::Debugger(VkInstance instance, VkDebugReportFlagsEXT flags) : m_vkInstance(instance), m_flags(flags)
 	{
 	}
-	
+
 	Debugger::~Debugger()
 	{
 		if (m_callback != VK_NULL_HANDLE)
@@ -24,7 +25,18 @@ namespace Concise
 			DestroyDebugReportCallback(m_vkInstance, m_callback, nullptr);
 		}
 	}
-	
+
+	void Dump(std::string & message)
+	{
+		std::ofstream fout("DebugInfo.txt", std::ios::out | std::ios::ate);
+
+		if (fout.is_open())
+		{
+			fout << message;
+			fout.close();
+		}
+	}
+
 	VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(
 		VkDebugReportFlagsEXT flags,
 		VkDebugReportObjectTypeEXT objType,
@@ -41,17 +53,17 @@ namespace Concise
 		{
 			prefix += "ERROR:";
 		};
-		
+
 		if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
 		{
 			prefix += "WARNING:";
 		};
-		
+
 		if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
 		{
 			prefix += "PERFORMANCE:";
 		};
-		
+
 		if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
 		{
 			prefix += "INFO:";
@@ -72,11 +84,12 @@ namespace Concise
 			LOGD("%s", debugMessage.str().c_str());
 		}
 #else
-		if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) 
+		if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
 		{
 			std::cerr << debugMessage.str() << "\n";
+			Dump(debugMessage.str());
 		}
-		else 
+		else
 		{
 			std::cout << debugMessage.str() << "\n";
 		}
@@ -86,7 +99,7 @@ namespace Concise
 
 		return VK_FALSE;
 	}
-	
+
 	void Debugger::Init()
 	{
 		CreateDebugReportCallback = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(m_vkInstance, "vkCreateDebugReportCallbackEXT"));
