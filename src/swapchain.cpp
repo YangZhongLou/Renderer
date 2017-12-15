@@ -48,6 +48,7 @@ namespace Concise
 		surfaceCreateInfo.hwnd = m_renderer->GetWindowHandle();
 		VK_CHECK_RESULT(vkCreateWin32SurfaceKHR(m_instance, &surfaceCreateInfo, nullptr, &m_surface));
 		
+		/** refactor */
 		UInt32 queueCount;
 		vkGetPhysicalDeviceQueueFamilyProperties(m_device->GetPhysicalDevice(), &queueCount, NULL);
 		assert(queueCount >= 1);

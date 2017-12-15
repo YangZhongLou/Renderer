@@ -25,6 +25,7 @@ namespace Concise
 		{
 			vkDestroyDevice(m_logicalDevice, nullptr);
 		}
+
 	}
 	
 	void Device::Init()

@@ -56,7 +56,7 @@ namespace Concise
 		
 		void CreateSwapchain(UInt32 * width, UInt32 * height, bool vsync = false);
 		UInt32 GetImageCount() { return m_imageCount; }
-		SwapchainBuffer GetBuffer(UInt32 i) { return m_buffers[i]; }
+		SwapchainBuffer & GetBuffer(UInt32 i) { return m_buffers[i]; }
 		VkFormat GetColorFormat() { return m_colorFormat; }
 		
 		VkResult AcquireNextImage(VkSemaphore presentCompleteSemaphore, UInt32 *imageIndex);

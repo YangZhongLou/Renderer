@@ -32,6 +32,7 @@ namespace Concise
 		}
 		else
 		{
+			assert(false);
 			std::cerr << "Error: Could not open shader file \"" << filename << "\"" << std::endl;
 		}
 	}

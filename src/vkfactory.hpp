@@ -39,7 +39,7 @@ namespace Concise
 			return commandPoolCreateInfo;
 		}
 	
-		inline VkDeviceCreateInfo DeviceCreateInfo(std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, VkPhysicalDeviceFeatures enabledFeatures)
+		inline VkDeviceCreateInfo DeviceCreateInfo(std::vector<VkDeviceQueueCreateInfo> & queueCreateInfos, VkPhysicalDeviceFeatures enabledFeatures)
 		{
 			VkDeviceCreateInfo deviceCreateInfo = {};
 			deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -95,7 +95,7 @@ namespace Concise
 			return pipelineCacheCreateInfo;
 		}
 	
-		inline VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule module)
+		inline VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule & module)
 		{
 			VkPipelineShaderStageCreateInfo shaderStageCreateInfo;
 			shaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -173,7 +173,7 @@ namespace Concise
 			return depthStencilState;
 		}
 	
-		inline VkPipelineDynamicStateCreateInfo PipelineDynamicStateCreateInfo(std::vector<VkDynamicState>& dynamicStates)
+		inline VkPipelineDynamicStateCreateInfo PipelineDynamicStateCreateInfo(std::vector<VkDynamicState> & dynamicStates)
 		{
 			VkPipelineDynamicStateCreateInfo dynamicState = {};
 			dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -246,8 +246,8 @@ namespace Concise
 			VkPipelineDepthStencilStateCreateInfo * depthStencilState,
 			VkPipelineColorBlendStateCreateInfo * colorBlendState,
 			VkPipelineDynamicStateCreateInfo * dynamicState,
-			VkPipelineLayout layout,
-			VkRenderPass renderPass,
+			VkPipelineLayout & layout,
+			VkRenderPass & renderPass,
 			VkPipelineTessellationStateCreateInfo * tessellationState = nullptr)
 		{
 			VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo;
@@ -279,23 +279,26 @@ namespace Concise
 			return shaderModuleCreateInfo;
 		}
 		
-		inline void SubpassDependencies(std::vector<VkSubpassDependency>& subpassDependencies)
+		inline void SubpassDependencies(std::vector<VkSubpassDependency> & subpassDependencies)
 		{
-			subpassDependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;								
-			subpassDependencies[0].dstSubpass = 0;													
-			subpassDependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;			
-			subpassDependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;	
-			subpassDependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-			subpassDependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			subpassDependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+			VkSubpassDependency subpassDependency {};
+			subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;								
+			subpassDependency.dstSubpass = 0;													
+			subpassDependency.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;			
+			subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;	
+			subpassDependency.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+			subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			subpassDependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+			subpassDependencies.push_back(subpassDependency);
 
-			subpassDependencies[1].srcSubpass = 0;													
-			subpassDependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;							
-			subpassDependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;	
-			subpassDependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-			subpassDependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			subpassDependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-			subpassDependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+			subpassDependency.srcSubpass = 0;													
+			subpassDependency.dstSubpass = VK_SUBPASS_EXTERNAL;							
+			subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;	
+			subpassDependency.dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			subpassDependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			subpassDependency.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+			subpassDependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+			subpassDependencies.push_back(subpassDependency);
 		}
 	
 		inline VkRenderPassCreateInfo RenderPassCreateInfo(std::vector<VkAttachmentDescription> attachments, std::vector<VkSubpassDependency> dependencies, VkSubpassDescription * subpassDescription)
@@ -410,20 +413,20 @@ namespace Concise
 			return imageCreateInfo;
 		}
 	
-		inline VkWriteDescriptorSet WriteDescriptorSet(VkDescriptorSet dstSet, VkDescriptorType descriptorType, const VkDescriptorBufferInfo* pBufferInfo)
+		inline VkWriteDescriptorSet WriteDescriptorSet(VkDescriptorSet & dstSet, VkDescriptorType descriptorType, const VkDescriptorBufferInfo & pBufferInfo)
 		{
 			VkWriteDescriptorSet writeDescriptorSet = {};
 			writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			writeDescriptorSet.dstSet = dstSet;
 			writeDescriptorSet.descriptorCount = 1;
 			writeDescriptorSet.descriptorType = descriptorType;
-			writeDescriptorSet.pBufferInfo = pBufferInfo;
+			writeDescriptorSet.pBufferInfo = &pBufferInfo;
 			writeDescriptorSet.dstBinding = 0;
 			
 			return writeDescriptorSet;
 		}
 		
-		inline VkDescriptorSetAllocateInfo DescriptorSetAllocateInfo(VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool)
+		inline VkDescriptorSetAllocateInfo DescriptorSetAllocateInfo(VkDescriptorSetLayout & descriptorSetLayout, VkDescriptorPool & descriptorPool)
 		{
 			VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
 			descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -434,7 +437,7 @@ namespace Concise
 			return descriptorSetAllocateInfo;
 		}
 		
-		inline VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo(VkDescriptorSetLayout descriptorSetLayout)
+		inline VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo(VkDescriptorSetLayout & descriptorSetLayout)
 		{
 			VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
 			pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -445,7 +448,7 @@ namespace Concise
 			return pipelineLayoutCreateInfo;
 		}
 
-		inline VkDescriptorSetLayoutCreateInfo DescriptorSetLayoutCreateInfo(const VkDescriptorSetLayoutBinding & layoutBinding)
+		inline VkDescriptorSetLayoutCreateInfo DescriptorSetLayoutCreateInfo(VkDescriptorSetLayoutBinding & layoutBinding)
 		{
 			VkDescriptorSetLayoutCreateInfo descriptorLayout = {};
 			descriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;

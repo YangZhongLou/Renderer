@@ -47,5 +47,7 @@ ENDIF(MSVC)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/")
 
+add_definitions(-DASSETS_DIR=\"${CMAKE_SOURCE_DIR}/data/\")
+
 add_subdirectory(src)
 add_subdirectory(tests)

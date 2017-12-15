@@ -19,6 +19,6 @@ namespace Concise
 		Shader(Device * device, std::string filename);
 		~Shader();
 	public:
-		VkShaderModule GetModule() { return m_shaderModule; }
+		VkShaderModule & GetModule() { return m_shaderModule; }
 	};
 }

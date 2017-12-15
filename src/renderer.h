@@ -40,7 +40,6 @@ namespace Concise
 		
 		Vertices * m_vertices;
 		Uniforms * m_uniforms;
-		VkFormat m_depthFormat;
 		struct
 		{
 			VkImage image;
@@ -55,10 +54,12 @@ namespace Concise
 		UInt32 m_destWidth;
 		UInt32 m_destHeight;
 		bool m_resizing;
-		bool m_prepared;
+
+		/** refactor */
+		bool m_prepared = false;
 		bool m_paused;
-		UInt32 m_width;
-		UInt32 m_height;
+		UInt32 m_width = 1280;
+		UInt32 m_height = 720;
 		float m_zoom = 0;
 
 		float m_rotationSpeed = 1.0f;
@@ -80,7 +81,7 @@ namespace Concise
 
 		struct Settings
 		{
-			bool validation = true;
+			bool validation = false;
 			bool fullscreen = false;
 			bool vsync = false;
 			bool overlay = false;
@@ -121,6 +122,8 @@ namespace Concise
 		float GetZoom() const { return m_zoom; };
 		glm::vec3 GetRotation() const { return m_rotation; }
 
+		bool IsPrepared() const { return m_prepared; }
+
 #if defined(_WIN32)
 		HWND GetWindowHandle() const { return m_window; }
 		HINSTANCE GetWindowInstance() const { return m_windowInstance; }
@@ -129,11 +132,12 @@ namespace Concise
 	private:
 		void InitVulkan();
 		void InitVulkanInstance(bool enableValidation);
-		void InitVulkanSync();
 		void InitVulkanDevice();
 		void InitVulkanDebugger();
 		void InitSwapchain();
-		
+		void InitCommandBuffers();
+		void InitVulkanSync();
+
 		void InitVeritces();
 
 		void InitPipelineCache();
@@ -143,6 +147,7 @@ namespace Concise
 		void InitRenderPass();
 		void InitPipelines();
 		
+		void InitUniforms();
 		void InitDescriptorPool();
 		/** refactor this later */
 		void InitDescriptorSetLayout();

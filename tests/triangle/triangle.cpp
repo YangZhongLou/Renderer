@@ -12,26 +12,26 @@ namespace Test
 	class Triangle
 	{
 	private:
-		Concise::Renderer * renderer;
+		Concise::Renderer * m_renderer;
 	public:
 		Triangle() 
 		{
-			renderer = new Concise::Renderer();
+			m_renderer = new Concise::Renderer();
 		}
 		~Triangle() 
 		{
-			SAFE_DELETE(renderer);
+			SAFE_DELETE(m_renderer);
 		}
 		
 	public:
 		void InitWindow(HINSTANCE hInstance, WNDPROC wndproc)
 		{
-			renderer->BuildWindow(hInstance, wndproc, "abc", "triangle");
+			m_renderer->BuildWindow(hInstance, wndproc, "abc", "triangle");
 		}
 	
 		void Init()
 		{
-			renderer->Init();
+			m_renderer->Init();
 			std::vector<Concise::Vertex> verticesData =
 			{
 				{ {  1.0f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
@@ -41,18 +41,23 @@ namespace Test
 			
 			std::vector<Concise::UInt32> indicesData = { 0, 1, 2 };
 			
-			renderer->SubmitVerticesData(verticesData, indicesData);
+			m_renderer->SubmitVerticesData(verticesData, indicesData);
 		}
 		
 		void Loop()
 		{
-			renderer->Loop();
+			m_renderer->Loop();
 		}
 
 		void HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
-			renderer->HandleMessages(hWnd, uMsg, wParam, lParam);
+			if (!IsPrepared())
+				return;
+
+			m_renderer->HandleMessages(hWnd, uMsg, wParam, lParam);
 		}
+
+		bool IsPrepared() const { return m_renderer->IsPrepared(); }
 	};
 	
 
@@ -61,6 +66,8 @@ namespace Test
 Test::Triangle * triangle;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+		
+
 	if (triangle != NULL)
 	{
 		triangle->HandleMessages(hWnd, uMsg, wParam, lParam);
@@ -72,8 +79,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 	//for (size_t i = 0; i < __argc; i++) { VulkanExample::args.push_back(__argv[i]); };
 
 	triangle = new Test::Triangle();
-	triangle->Init();
 	triangle->InitWindow(hInstance, WndProc);
+	triangle->Init();
 	triangle->Loop();
 
 	delete(triangle);

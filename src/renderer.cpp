@@ -26,13 +26,19 @@ namespace Concise
 			vkDestroyFence(m_device->GetLogicalDevice(), fence, nullptr);
 		}
 		
+		SAFE_DELETE(m_uniforms);
 		SAFE_DELETE(m_vertices);
+		SAFE_DELETE(m_swapchain);
 		SAFE_DELETE(m_device);
+
+		vkDestroyInstance(m_vkInstance, nullptr);
 	}
 	
 	void Renderer::Init()
 	{
+		m_prepared = false;
 		InitVulkan();
+		InitUniforms();
 		InitVeritces();
 		InitPipelineCache();
 		InitDepthStencil();
@@ -42,6 +48,7 @@ namespace Concise
 		InitDescriptorSetLayout();
 		InitDescriptorSet();
 		InitPipelines();
+		m_prepared = true;
 	}
 	
 	void Renderer::InitVeritces()
@@ -115,6 +122,7 @@ namespace Concise
 		InitVulkanDebugger();
 		InitVulkanDevice();
 		InitSwapchain();
+		InitCommandBuffers();
 		InitVulkanSync();
 	}
 	
@@ -184,6 +192,11 @@ namespace Concise
 		m_swapchain->CreateSwapchain(&m_width, &m_height, m_settings.vsync);
 	}
 
+	void Renderer::InitCommandBuffers()
+	{
+		CreateCommandBuffers();
+	}
+
 	void Renderer::InitVulkanSync()
 	{
 		VkSemaphoreCreateInfo semaphoreCreateInfo = VkFactory::SemaphoreCreateInfo();
@@ -196,6 +209,12 @@ namespace Concise
 		{
 			VK_CHECK_RESULT(vkCreateFence(m_device->GetLogicalDevice(), &fenceCreateInfo, nullptr, &fence));
 		}
+	}
+
+	void Renderer::InitUniforms()
+	{
+		m_uniforms = new Uniforms(m_device, this);
+		m_uniforms->Init();
 	}
 
 	void Renderer::InitDescriptorPool()
@@ -228,13 +247,13 @@ namespace Concise
 		VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = VkFactory::DescriptorSetAllocateInfo(m_descriptorSetLayout, m_descriptorPool);
 		VK_CHECK_RESULT(vkAllocateDescriptorSets(m_device->GetLogicalDevice(), &descriptorSetAllocateInfo, &m_descriptorSet));
 
-		VkWriteDescriptorSet writeDescriptorSet = VkFactory::WriteDescriptorSet(m_descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &m_uniforms->GetDescriptorBufferInfo());
+		VkWriteDescriptorSet writeDescriptorSet = VkFactory::WriteDescriptorSet(m_descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_uniforms->GetDescriptorBufferInfo());
 		vkUpdateDescriptorSets(m_device->GetLogicalDevice(), 1, &writeDescriptorSet, 0, nullptr);
 	}
 	
 	void Renderer::InitDepthStencil()
 	{
-		VkImageCreateInfo image = VkFactory::ImageCreateInfo(m_depthFormat, {m_width, m_height, 1});
+		VkImageCreateInfo image = VkFactory::ImageCreateInfo(m_device->GetSupportedDepthFormat(), {m_width, m_height, 1});
 		VK_CHECK_RESULT(vkCreateImage(m_device->GetLogicalDevice(), &image, nullptr, &m_depthStencil.image));
 
 		VkMemoryRequirements memReqs;
@@ -245,7 +264,7 @@ namespace Concise
 		VK_CHECK_RESULT(vkBindImageMemory(m_device->GetLogicalDevice(), m_depthStencil.image, m_depthStencil.mem, 0));
 
 		VkImageSubresourceRange imageSubresourceRange = VkFactory::ImageSubresourceRange(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
-		VkImageViewCreateInfo imageViewCreateInfo = VkFactory::ImageViewCreateInfo(m_depthFormat, m_depthStencil.image, imageSubresourceRange);
+		VkImageViewCreateInfo imageViewCreateInfo = VkFactory::ImageViewCreateInfo(m_device->GetSupportedDepthFormat(), m_depthStencil.image, imageSubresourceRange);
 		VK_CHECK_RESULT(vkCreateImageView(m_device->GetLogicalDevice(), &imageViewCreateInfo, nullptr, &m_depthStencil.view));
 	}
 	
@@ -254,26 +273,25 @@ namespace Concise
 		m_framebuffers.resize(m_swapchain->GetImageCount());
 		for (UInt32 i = 0; i < static_cast<UInt32>(m_framebuffers.size()); i++)
 		{
-			std::vector<VkImageView> attachments;										
+			std::vector<VkImageView> attachments(2);										
 			attachments[0] = m_swapchain->GetBuffer(i).view;
 			attachments[1] = m_depthStencil.view;									
 
 			VkFramebufferCreateInfo frameBufferCreateInfo = VkFactory::FramebufferCreateInfo(m_renderPass, attachments, m_width, m_height);
-			frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 			VK_CHECK_RESULT(vkCreateFramebuffer(m_device->GetLogicalDevice(), &frameBufferCreateInfo, nullptr, &m_framebuffers[i]));
 		}
 	}
 	
 	void Renderer::InitRenderPass()
 	{
-		std::vector<VkAttachmentDescription> attachments = {};
+		std::vector<VkAttachmentDescription> attachments(2);
 		// Color attachment
 		attachments[0] = VkFactory::AttachmentDescription(m_swapchain->GetColorFormat());
 		attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;							
 		attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;					
 																						
 		// Depth attachment
-		attachments[1] = VkFactory::AttachmentDescription(m_depthFormat);											
+		attachments[1] = VkFactory::AttachmentDescription(m_device->GetSupportedDepthFormat());
 		attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;	
 
 		// Setup attachment references
@@ -324,12 +342,11 @@ namespace Concise
 
 		VkPipelineVertexInputStateCreateInfo vertexInputState = VkFactory::PipelineVertexInputStateCreateInfo(vertexInputBindingDecriptions, vertexInputAttributeDescriptions);
 
-		// Shaders
-		std::vector<VkPipelineShaderStageCreateInfo> shaderStages {};
-		Shader vertexShader(m_device, "shaders/triangle/triangle.vert.spv");
-		Shader fragmentShader(m_device, "shaders/triangle/triangle.frag.spv");
-		shaderStages[0] = VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertexShader.GetModule());
-		shaderStages[1] = VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader.GetModule());
+		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+		Shader vertexShader(m_device, ASSETS_DIR + std::string("shaders/triangle/triangle.vert.spv"));
+		Shader fragmentShader(m_device, ASSETS_DIR + std::string("shaders/triangle/triangle.frag.spv"));
+		shaderStages.push_back(VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertexShader.GetModule()));
+		shaderStages.push_back(VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader.GetModule()));
 
 		VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = VkFactory::GraphicsPipelineCreateInfo(shaderStages,
 			&vertexInputState,
