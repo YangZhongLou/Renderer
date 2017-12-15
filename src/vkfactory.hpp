@@ -251,6 +251,7 @@ namespace Concise
 			VkPipelineTessellationStateCreateInfo * tessellationState = nullptr)
 		{
 			VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo;
+			graphicsPipelineCreateInfo.flags = VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
 			graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 			graphicsPipelineCreateInfo.layout = layout;
 			graphicsPipelineCreateInfo.stageCount = static_cast<UInt32>(shaderStages.size());

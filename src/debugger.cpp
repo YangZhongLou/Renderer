@@ -8,10 +8,13 @@
 
 namespace Concise
 {
-	Int32 Debugger::validationLayerCount = 1;
+	Int32 Debugger::validationLayerCount = 4;
 	const char * Debugger::validationLayerNames[] =
 	{
-		"VK_LAYER_LUNARG_standard_validation"
+		"VK_LAYER_LUNARG_parameter_validation",
+		"VK_LAYER_LUNARG_object_tracker",
+		"VK_LAYER_LUNARG_core_validation",
+		"VK_LAYER_LUNARG_swapchain",
 	};
 
 	Debugger::Debugger(VkInstance instance, VkDebugReportFlagsEXT flags) : m_vkInstance(instance), m_flags(flags)
