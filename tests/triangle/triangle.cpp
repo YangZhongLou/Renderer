@@ -26,11 +26,12 @@ namespace Test
 	public:
 		void InitWindow(HINSTANCE hInstance, WNDPROC wndproc)
 		{
-			renderer->BuildWindow(hInstance, wndproc, "", "triangle");
+			renderer->BuildWindow(hInstance, wndproc, "abc", "triangle");
 		}
 	
 		void Init()
 		{
+			renderer->Init();
 			std::vector<Concise::Vertex> verticesData =
 			{
 				{ {  1.0f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
@@ -71,8 +72,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 	//for (size_t i = 0; i < __argc; i++) { VulkanExample::args.push_back(__argv[i]); };
 
 	triangle = new Test::Triangle();
-	triangle->InitWindow(hInstance, WndProc);
 	triangle->Init();
+	triangle->InitWindow(hInstance, WndProc);
 	triangle->Loop();
 
 	delete(triangle);

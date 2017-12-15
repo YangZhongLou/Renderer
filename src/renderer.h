@@ -80,7 +80,7 @@ namespace Concise
 
 		struct Settings
 		{
-			bool validation = false;
+			bool validation = true;
 			bool fullscreen = false;
 			bool vsync = false;
 			bool overlay = false;

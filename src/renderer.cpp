@@ -49,20 +49,6 @@ namespace Concise
 		m_vertices = new Vertices(m_device);
 	}
 	
-	void Renderer::InitVulkanSync()
-	{
-		VkSemaphoreCreateInfo semaphoreCreateInfo = VkFactory::SemaphoreCreateInfo();
-		VK_CHECK_RESULT(vkCreateSemaphore(m_device->GetLogicalDevice(), &semaphoreCreateInfo, nullptr, &m_presentCompleteSemaphore));
-		VK_CHECK_RESULT(vkCreateSemaphore(m_device->GetLogicalDevice(), &semaphoreCreateInfo, nullptr, &m_renderCompleteSemaphore));
-		
-		VkFenceCreateInfo fenceCreateInfo = VkFactory::FenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
-		m_fences.resize(m_drawCmdBuffers.size());
-		for (auto& fence : m_fences)
-		{
-			VK_CHECK_RESULT(vkCreateFence(m_device->GetLogicalDevice(), &fenceCreateInfo, nullptr, &fence));
-		}
-	}
-	
 	void Renderer::DestroyCommandBuffers()
 	{
 		vkFreeCommandBuffers(m_device->GetLogicalDevice(), m_device->GetCommandPool(), static_cast<uint32_t>(m_drawCmdBuffers.size()), m_drawCmdBuffers.data());
@@ -123,13 +109,6 @@ namespace Concise
 		}
 	}
 	
-	void Renderer::InitSwapchain()
-	{
-		m_swapchain = new Swapchain(m_vkInstance, m_device, this);
-		m_swapchain->Init();
-		m_swapchain->CreateSwapchain(&m_width, &m_height, m_settings.vsync);
-	}
-	
 	void Renderer::InitVulkan()
 	{
 		InitVulkanInstance(false);
@@ -169,7 +148,7 @@ namespace Concise
 			{
 				instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 			}
-			instanceCreateInfo.enabledExtensionCount = (UInt32)instanceExtensions.size();
+			instanceCreateInfo.enabledExtensionCount = static_cast<UInt32>(instanceExtensions.size());
 			instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
 		}
 		if (m_settings.validation)
@@ -177,13 +156,7 @@ namespace Concise
 			instanceCreateInfo.enabledLayerCount = Debugger::validationLayerCount;
 			instanceCreateInfo.ppEnabledLayerNames = Debugger::validationLayerNames;
 		}
-		vkCreateInstance(&instanceCreateInfo, nullptr, &m_vkInstance);
-	}
-	
-	void Renderer::InitVulkanDevice()
-	{
-		m_device = new Device(m_vkInstance);
-		m_device->Init();
+		VK_CHECK_RESULT(vkCreateInstance(&instanceCreateInfo, nullptr, &m_vkInstance));
 	}
 	
 	void Renderer::InitVulkanDebugger()
@@ -197,7 +170,34 @@ namespace Concise
 		m_debugger = new Debugger(m_vkInstance, debugReportFlags);
 		m_debugger->Init();
 	}
+
+	void Renderer::InitVulkanDevice()
+	{
+		m_device = new Device(m_vkInstance);
+		m_device->Init();
+	}
 	
+	void Renderer::InitSwapchain()
+	{
+		m_swapchain = new Swapchain(m_vkInstance, m_device, this);
+		m_swapchain->Init();
+		m_swapchain->CreateSwapchain(&m_width, &m_height, m_settings.vsync);
+	}
+
+	void Renderer::InitVulkanSync()
+	{
+		VkSemaphoreCreateInfo semaphoreCreateInfo = VkFactory::SemaphoreCreateInfo();
+		VK_CHECK_RESULT(vkCreateSemaphore(m_device->GetLogicalDevice(), &semaphoreCreateInfo, nullptr, &m_presentCompleteSemaphore));
+		VK_CHECK_RESULT(vkCreateSemaphore(m_device->GetLogicalDevice(), &semaphoreCreateInfo, nullptr, &m_renderCompleteSemaphore));
+
+		VkFenceCreateInfo fenceCreateInfo = VkFactory::FenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
+		m_fences.resize(m_drawCmdBuffers.size());
+		for (auto& fence : m_fences)
+		{
+			VK_CHECK_RESULT(vkCreateFence(m_device->GetLogicalDevice(), &fenceCreateInfo, nullptr, &fence));
+		}
+	}
+
 	void Renderer::InitDescriptorPool()
 	{
 		/** TODO, refactor this later */

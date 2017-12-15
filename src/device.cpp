@@ -196,7 +196,7 @@ namespace Concise
 
 		if (deviceExtensions.size() > 0)
 		{
-			deviceCreateInfo.enabledExtensionCount = (UInt32)deviceExtensions.size();
+			deviceCreateInfo.enabledExtensionCount = static_cast<UInt32>(deviceExtensions.size());
 			deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 		}
 
