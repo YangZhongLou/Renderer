@@ -130,12 +130,13 @@ namespace Concise
 		}
 		
 		assert(false);
+		return 0;
 	}
 	
 	void Device::CreateLogicalDevice(VkPhysicalDeviceFeatures & enabledFeatures, 
 			std::vector<const char*> enabledExtensions, 
-			bool useSwapChain = true, 
-			VkQueueFlags requestedQueueTypes = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)
+			bool useSwapChain, 
+			VkQueueFlags requestedQueueTypes)
 	{
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
 
@@ -207,7 +208,7 @@ namespace Concise
 		}
 	}
 	
-	void Device::CreateCommandPool(UInt32 queueFamilyIndex, VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)
+	void Device::CreateCommandPool(UInt32 queueFamilyIndex, VkCommandPoolCreateFlags createFlags)
 	{
 		VkCommandPoolCreateInfo cmdPoolInfo = VkFactory::CommandPoolCreateInfo(queueFamilyIndex, createFlags);
 		VK_CHECK_RESULT(vkCreateCommandPool(m_logicalDevice, &cmdPoolInfo, nullptr, &m_cmdPool));
@@ -233,6 +234,7 @@ namespace Concise
 		}
 		
 		LOG_ERROR("GetMemoryTypeIndex");
+		return 0;
 	}
 	
 	VkCommandBuffer Device::GetCommandBuffer(bool beginRecord)

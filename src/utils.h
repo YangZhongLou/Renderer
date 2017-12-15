@@ -12,6 +12,6 @@ namespace Concise
 {
 	namespace Utils
 	{
-		void ExitFatal(std::string message, std::string caption, bool silent);
+		void ExitFatal(std::string message, std::string caption, bool silent = false);
 	}
 }

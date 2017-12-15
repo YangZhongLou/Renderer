@@ -72,7 +72,7 @@ namespace Concise
 	{
 		m_drawCmdBuffers.resize(m_swapchain->GetImageCount());
 
-		VkCommandBufferAllocateInfo cmdBufAllocateInfo = VkFactory::CommandBufferAllocateInfo(m_device->GetCommandPool(), VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_drawCmdBuffers.size());
+		VkCommandBufferAllocateInfo cmdBufAllocateInfo = VkFactory::CommandBufferAllocateInfo(m_device->GetCommandPool(), VK_COMMAND_BUFFER_LEVEL_PRIMARY, static_cast<UInt32>(m_drawCmdBuffers.size()));
 
 		VK_CHECK_RESULT(vkAllocateCommandBuffers(m_device->GetLogicalDevice(), &cmdBufAllocateInfo, m_drawCmdBuffers.data()));
 	}
@@ -252,10 +252,10 @@ namespace Concise
 	void Renderer::InitFramebuffers()
 	{
 		m_framebuffers.resize(m_swapchain->GetImageCount());
-		for (size_t i = 0; i < m_framebuffers.size(); i++)
+		for (UInt32 i = 0; i < static_cast<UInt32>(m_framebuffers.size()); i++)
 		{
 			std::vector<VkImageView> attachments;										
-			attachments[0] = m_swapchain->GetBuffer(i).view;								
+			attachments[0] = m_swapchain->GetBuffer(i).view;
 			attachments[1] = m_depthStencil.view;									
 
 			VkFramebufferCreateInfo frameBufferCreateInfo = VkFactory::FramebufferCreateInfo(m_renderPass, attachments, m_width, m_height);
@@ -317,7 +317,7 @@ namespace Concise
 		VkPipelineMultisampleStateCreateInfo multisampleState = VkFactory::PipelineMultisampleStateCreateInfo();
 				
 		std::vector<VkVertexInputBindingDescription> vertexInputBindingDecriptions;
-		VkFactory::VertexInputBindingDescription(vertexInputBindingDecriptions);
+		VkFactory::VertexInputBindingDescriptions(vertexInputBindingDecriptions);
 		
 		std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions;
 		VkFactory::VertexInputAttributeDescription(vertexInputAttributeDescriptions);
@@ -328,8 +328,8 @@ namespace Concise
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages {};
 		Shader vertexShader(m_device, "shaders/triangle/triangle.vert.spv");
 		Shader fragmentShader(m_device, "shaders/triangle/triangle.frag.spv");
-		shaderStages[0] = VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertexShader);
-		shaderStages[1] = VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader);
+		shaderStages[0] = VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertexShader.GetModule());
+		shaderStages[1] = VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader.GetModule());
 
 		VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = VkFactory::GraphicsPipelineCreateInfo(shaderStages,
 			&vertexInputState,
@@ -347,7 +347,7 @@ namespace Concise
 		VK_CHECK_RESULT(vkCreateGraphicsPipelines(m_device->GetLogicalDevice(), m_pipelineCache, 1, &graphicsPipelineCreateInfo, nullptr, &m_pipeline));
 	}
 	
-	HWND Renderer::BuildWindow(HINSTANCE hinstance, WNDPROC wndproc, std::string name = "", std::string windowTitle = "")
+	HWND Renderer::BuildWindow(HINSTANCE hinstance, WNDPROC wndproc, std::string name, std::string windowTitle)
 	{
 		m_windowInstance = hinstance;
 

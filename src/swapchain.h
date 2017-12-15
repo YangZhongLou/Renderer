@@ -3,7 +3,10 @@
 */
 #pragma once
 
+#include <vector>
 #include <vulkan/vulkan.h>
+#include "types.h"
+
 
 namespace Concise
 {

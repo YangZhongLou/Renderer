@@ -27,10 +27,4 @@ namespace Concise
 	public:
 		void Init();
 	};
-
-	Int32 Debugger::validationLayerCount = 1;
-	const char * Debugger::validationLayerNames[] = 
-	{
-		"VK_LAYER_LUNARG_standard_validation"
-	};
 }

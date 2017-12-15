@@ -20,7 +20,7 @@ namespace Concise
 		
 		/** vertex buffer */
 		/** TODO, refine here, pre-allocate a chunk of memory */
-		UInt32 vertexDataSize = vertexData.size() * sizeof(Vertex);
+		UInt32 vertexDataSize = static_cast<UInt32>(vertexData.size()) * sizeof(Vertex);
 		VkBufferCreateInfo vertexBufferCreateInfo = VkFactory::BufferCreateInfo(vertexDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 
 		VK_CHECK_RESULT(vkCreateBuffer(m_device->GetLogicalDevice(), &vertexBufferCreateInfo, nullptr, &stagingVertices.buffer));
@@ -49,7 +49,7 @@ namespace Concise
 		VK_CHECK_RESULT(vkBindBufferMemory(m_device->GetLogicalDevice(), m_vertexBuffer.buffer, m_vertexBuffer.memory, 0));
 		
 		/** index buffer */
-		m_indexCount = indexData.size();
+		m_indexCount = static_cast<UInt32>(indexData.size());
 		VkBufferCreateInfo indexBufferCreateInfo = VkFactory::BufferCreateInfo(indexData.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 		VK_CHECK_RESULT(vkCreateBuffer(m_device->GetLogicalDevice(), &indexBufferCreateInfo, nullptr, &staginIndices.buffer));
 		vkGetBufferMemoryRequirements(m_device->GetLogicalDevice(), staginIndices.buffer, &memReqs);
@@ -59,8 +59,8 @@ namespace Concise
 		VK_CHECK_RESULT(vkAllocateMemory(m_device->GetLogicalDevice(), &memAlloc, nullptr, &staginIndices.memory));
 		VK_CHECK_RESULT(vkMapMemory(m_device->GetLogicalDevice(), staginIndices.memory, 0, indexData.size(), 0, &data));
 		memcpy(data, indexData.data(), indexData.size());
-		vkUnmapMemory(device, staginIndices.memory);
-		VK_CHECK_RESULT(vkBindBufferMemory(device, staginIndices.buffer, staginIndices.memory, 0));
+		vkUnmapMemory(m_device->GetLogicalDevice(), staginIndices.memory);
+		VK_CHECK_RESULT(vkBindBufferMemory(m_device->GetLogicalDevice(), staginIndices.buffer, staginIndices.memory, 0));
 
 		/** destination buffer */
 		indexBufferCreateInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
@@ -68,8 +68,8 @@ namespace Concise
 		vkGetBufferMemoryRequirements(m_device->GetLogicalDevice(), m_indexBuffer.buffer, &memReqs);
 		memAlloc.allocationSize = memReqs.size;
 		memAlloc.memoryTypeIndex = m_device->GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		VK_CHECK_RESULT(vkAllocateMemory(device, &memAlloc, nullptr, &m_indexBuffer.memory));
-		VK_CHECK_RESULT(vkBindBufferMemory(device, m_indexBuffer.buffer, m_indexBuffer.memory, 0));
+		VK_CHECK_RESULT(vkAllocateMemory(m_device->GetLogicalDevice(), &memAlloc, nullptr, &m_indexBuffer.memory));
+		VK_CHECK_RESULT(vkBindBufferMemory(m_device->GetLogicalDevice(), m_indexBuffer.buffer, m_indexBuffer.memory, 0));
 
 		VkCommandBuffer copyCmd = m_device->GetCommandBuffer(true);
 		
@@ -84,9 +84,9 @@ namespace Concise
 		m_device->FlushCommandBuffer(copyCmd);
 
 		/** TODO, RAII */
-		vkDestroyBuffer(device, stagingVertices.buffer, nullptr);
-		vkFreeMemory(device, stagingVertices.memory, nullptr);
-		vkDestroyBuffer(device, staginIndices.buffer, nullptr);
-		vkFreeMemory(device, staginIndices.memory, nullptr);
+		vkDestroyBuffer(m_device->GetLogicalDevice(), stagingVertices.buffer, nullptr);
+		vkFreeMemory(m_device->GetLogicalDevice(), stagingVertices.memory, nullptr);
+		vkDestroyBuffer(m_device->GetLogicalDevice(), staginIndices.buffer, nullptr);
+		vkFreeMemory(m_device->GetLogicalDevice(), staginIndices.memory, nullptr);
 	}
 }

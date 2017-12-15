@@ -16,10 +16,10 @@ function(build_test test_name)
 	#link
 	if(WIN32)
 		add_executable(${test_name} WIN32 ${main_cpp} ${source} ${shaders})
-		target_link_libraries(${test_name} base ${Vulkan_LIBRARY} ${ASSIMP_LIBRARIES} ${WINLIBS} ${renderer})
+		target_link_libraries(${test_name} renderer ${Vulkan_LIBRARY} ${ASSIMP_LIBRARIES} ${WINLIBS})
 	else(WIN32)
 		add_executable(${test_name} ${main_cpp} ${source} ${shaders})
-		target_link_libraries(${test_name} base )
+		target_link_libraries(${test_name} )
 	endif(WIN32)
 endfunction(build_test)
 

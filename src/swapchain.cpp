@@ -139,7 +139,7 @@ namespace Concise
 		}
 	}
 	
-	void Swapchain::CreateSwapchain(UInt32 * width, UInt32 * height, bool vsync = false)
+	void Swapchain::CreateSwapchain(UInt32 * width, UInt32 * height, bool vsync)
 	{
 		VkSurfaceCapabilitiesKHR surfCaps;
 		VK_CHECK_RESULT(GetPhysicalDeviceSurfaceCapabilitiesKHR(m_device->GetPhysicalDevice(), m_surface, &surfCaps));
@@ -276,7 +276,7 @@ namespace Concise
 			colorAttachmentView.flags = 0;
 			m_buffers[i].image = m_images[i];
 
-			Utils:;VK_CHECK_RESULT(vkCreateImageView(m_device->GetLogicalDevice(), &colorAttachmentView, nullptr, &m_buffers[i].view));
+			VK_CHECK_RESULT(vkCreateImageView(m_device->GetLogicalDevice(), &colorAttachmentView, nullptr, &m_buffers[i].view));
 		}
 	}
 	
@@ -285,7 +285,7 @@ namespace Concise
 		return AcquireNextImageKHR(m_device->GetLogicalDevice(), m_swapchain, UINT64_MAX, presentCompleteSemaphore, (VkFence)nullptr, imageIndex);
 	}
 	
-	VkResult Swapchain::QueuePresent(VkQueue queue, UInt32 imageIndex, VkSemaphore waitSemaphore = VK_NULL_HANDLE)
+	VkResult Swapchain::QueuePresent(VkQueue queue, UInt32 imageIndex, VkSemaphore waitSemaphore)
 	{
 		VkPresentInfoKHR presentInfo = VkFactory::PresentInfoKHR(&m_swapchain, imageIndex);
 		if (waitSemaphore != VK_NULL_HANDLE)

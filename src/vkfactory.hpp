@@ -7,11 +7,14 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 #include "types.h"
+/** refactor */
 #include "vertices.h"
-#include "shader.h"
+
 
 namespace Concise
 {
+	struct Vertex;
+
 	namespace VkFactory
 	{	
 		inline VkPresentInfoKHR PresentInfoKHR(VkSwapchainKHR * swapchain, UInt32 imageIndex)
@@ -92,12 +95,12 @@ namespace Concise
 			return pipelineCacheCreateInfo;
 		}
 	
-		inline VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, Shader & shader)
+		inline VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule module)
 		{
 			VkPipelineShaderStageCreateInfo shaderStageCreateInfo;
 			shaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			shaderStageCreateInfo.stage = stage;
-			shaderStageCreateInfo.module = shader.GetModule();
+			shaderStageCreateInfo.module = module;
 			shaderStageCreateInfo.pName = "main";
 			
 			return shaderStageCreateInfo;
@@ -108,23 +111,25 @@ namespace Concise
 		{
 			VkPipelineVertexInputStateCreateInfo vertexInputState = {};
 			vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-			vertexInputState.vertexBindingDescriptionCount = vertexBindingDescriptions.size();
+			vertexInputState.vertexBindingDescriptionCount = static_cast<UInt32>(vertexBindingDescriptions.size());
 			vertexInputState.pVertexBindingDescriptions = vertexBindingDescriptions.data();
-			vertexInputState.vertexAttributeDescriptionCount = vertexAttributeDescriptions.size();
+			vertexInputState.vertexAttributeDescriptionCount = static_cast<UInt32>(vertexAttributeDescriptions.size());
 			vertexInputState.pVertexAttributeDescriptions = vertexAttributeDescriptions.data();
+
+			return vertexInputState;
 		}
 		
-		inline VkVertexInputBindingDescription VertexInputBindingDescription(std::vector<VkVertexInputBindingDescription> & vertexBindingDescriptions)
+		inline void VertexInputBindingDescriptions(std::vector<VkVertexInputBindingDescription> & vertexBindingDescriptions)
 		{
 			VkVertexInputBindingDescription vertexInputBinding;
 			vertexInputBinding.binding = 0;
 			vertexInputBinding.stride = sizeof(Vertex);
 			vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 			
-			return vertexInputBinding;
+			vertexBindingDescriptions.push_back(vertexInputBinding);
 		}
 	
-		void VertexInputAttributeDescription(std::vector<VkVertexInputAttributeDescription> & vertexInputAttributeDescriptions)
+		inline void VertexInputAttributeDescription(std::vector<VkVertexInputAttributeDescription> & vertexInputAttributeDescriptions)
 		{
 			VkVertexInputAttributeDescription vertexInputAttributeDescription {};
 			
@@ -564,7 +569,7 @@ namespace Concise
 		{
 			VkSubmitInfo submitInfo = {};
 			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-			submitInfo.commandBufferCount = commandBuffers.size();
+			submitInfo.commandBufferCount = static_cast<UInt32>(commandBuffers.size());
 			submitInfo.pCommandBuffers = commandBuffers.data();
 			
 			return submitInfo;

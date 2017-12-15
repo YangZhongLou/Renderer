@@ -15,6 +15,7 @@ namespace Concise
 	class Uniforms;
 	class Swapchain;
 	class Debugger;
+	struct Vertex;
 	
 	class Renderer
 	{
