@@ -17,6 +17,18 @@ namespace Concise
 	
 	Renderer::~Renderer()
 	{
+		if (m_descriptorPool != VK_NULL_HANDLE)
+		{
+			vkDestroyDescriptorPool(m_device->GetLogicalDevice(), m_descriptorPool, nullptr);
+		}
+
+		vkDestroyRenderPass(m_device->GetLogicalDevice(), m_renderPass, nullptr);
+
+		for (uint32_t i = 0; i < m_framebuffers.size(); i++)
+		{
+			vkDestroyFramebuffer(m_device->GetLogicalDevice(), m_framebuffers[i], nullptr);
+		}
+
 		/** TODO, RAII */
 		vkDestroySemaphore(m_device->GetLogicalDevice(), m_presentCompleteSemaphore, nullptr);
 		vkDestroySemaphore(m_device->GetLogicalDevice(), m_renderCompleteSemaphore, nullptr);
@@ -26,6 +38,18 @@ namespace Concise
 			vkDestroyFence(m_device->GetLogicalDevice(), fence, nullptr);
 		}
 		
+		vkDestroyPipeline(m_device->GetLogicalDevice(), m_pipeline, nullptr);
+
+		vkDestroyPipelineLayout(m_device->GetLogicalDevice(), m_pipelineLayout, nullptr);
+		vkDestroyDescriptorSetLayout(m_device->GetLogicalDevice(), m_descriptorSetLayout, nullptr);
+		vkDestroyPipelineCache(m_device->GetLogicalDevice(), m_pipelineCache, nullptr);
+
+		vkDestroyImageView(m_device->GetLogicalDevice(), m_depthStencil.view, nullptr);
+		vkDestroyImage(m_device->GetLogicalDevice(), m_depthStencil.image, nullptr);
+		vkFreeMemory(m_device->GetLogicalDevice(), m_depthStencil.mem, nullptr);
+
+		vkFreeCommandBuffers(m_device->GetLogicalDevice(), m_device->GetCommandPool(), static_cast<uint32_t>(m_drawCmdBuffers.size()), m_drawCmdBuffers.data());
+
 		SAFE_DELETE(m_uniforms);
 		SAFE_DELETE(m_vertices);
 		SAFE_DELETE(m_swapchain);

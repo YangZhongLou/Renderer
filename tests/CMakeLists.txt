@@ -12,6 +12,7 @@ function(build_test test_name)
 	set(shader_dir "../data/shaders/${test_name}")
 	
 	file(GLOB shaders "${shader_dir}/*.vert" "${shader_dir}/*.frag" "${shader_dir}/*.comp" "${shader_dir}/*.geom" "${shader_dir}/*.tesc" "${shader_dir}/*.tese")
+	source_group("Shaders" FILES ${shaders})
 	
 	#link
 	if(WIN32)

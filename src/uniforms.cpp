@@ -16,6 +16,8 @@ namespace Concise
 	
 	Uniforms::~Uniforms()
 	{
+		vkDestroyBuffer(m_device->GetLogicalDevice(), m_vsBuffer.buffer, nullptr);
+		vkFreeMemory(m_device->GetLogicalDevice(), m_vsBuffer.memory, nullptr);
 	}
 	
 	void Uniforms::Init()

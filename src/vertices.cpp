@@ -11,6 +11,11 @@ namespace Concise
 	
 	Vertices::~Vertices()
 	{
+		vkDestroyBuffer(m_device->GetLogicalDevice(), m_vertexBuffer.buffer, nullptr);
+		vkFreeMemory(m_device->GetLogicalDevice(), m_vertexBuffer.memory, nullptr);
+
+		vkDestroyBuffer(m_device->GetLogicalDevice(), m_indexBuffer.buffer, nullptr);
+		vkFreeMemory(m_device->GetLogicalDevice(), m_indexBuffer.memory, nullptr);
 	}
 	
 	/** refine it, delete duplicated codes */

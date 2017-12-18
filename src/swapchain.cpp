@@ -13,6 +13,20 @@ namespace Concise
 	
 	Swapchain::~Swapchain()
 	{
+		if (m_swapchain != VK_NULL_HANDLE)
+		{
+			for (uint32_t i = 0; i < m_imageCount; i++)
+			{
+				vkDestroyImageView(m_device->GetLogicalDevice(), m_buffers[i].view, nullptr);
+			}
+		}
+		if (m_surface != VK_NULL_HANDLE)
+		{
+			DestroySwapchainKHR(m_device->GetLogicalDevice(), m_swapchain, nullptr);
+			vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+		}
+		m_surface = VK_NULL_HANDLE;
+		m_swapchain = VK_NULL_HANDLE;
 	}
 	
 	void Swapchain::Init()

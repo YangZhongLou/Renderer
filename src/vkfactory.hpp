@@ -571,7 +571,7 @@ namespace Concise
 			return submitInfo;
 		}
 		
-		inline VkSubmitInfo SubmitInfo(std::vector<VkCommandBuffer>& commandBuffers)
+		inline VkSubmitInfo SubmitInfo(std::vector<VkCommandBuffer> & commandBuffers)
 		{
 			VkSubmitInfo submitInfo = {};
 			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
