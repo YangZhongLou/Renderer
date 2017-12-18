@@ -26,6 +26,7 @@ namespace Concise
 		/** vertex buffer */
 		/** TODO, refine here, pre-allocate a chunk of memory */
 		UInt32 vertexDataSize = static_cast<UInt32>(vertexData.size()) * sizeof(Vertex);
+		UInt32 indexDataSize = static_cast<UInt32>(indexData.size()) * sizeof(UInt32);
 		VkBufferCreateInfo vertexBufferCreateInfo = VkFactory::BufferCreateInfo(vertexDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 
 		VK_CHECK_RESULT(vkCreateBuffer(m_device->GetLogicalDevice(), &vertexBufferCreateInfo, nullptr, &stagingVertices.buffer));
@@ -55,15 +56,15 @@ namespace Concise
 		
 		/** index buffer */
 		m_indexCount = static_cast<UInt32>(indexData.size());
-		VkBufferCreateInfo indexBufferCreateInfo = VkFactory::BufferCreateInfo(indexData.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+		VkBufferCreateInfo indexBufferCreateInfo = VkFactory::BufferCreateInfo(indexDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 		VK_CHECK_RESULT(vkCreateBuffer(m_device->GetLogicalDevice(), &indexBufferCreateInfo, nullptr, &staginIndices.buffer));
 		vkGetBufferMemoryRequirements(m_device->GetLogicalDevice(), staginIndices.buffer, &memReqs);
 		memAlloc.allocationSize = memReqs.size;
 		memAlloc.memoryTypeIndex = m_device->GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		
 		VK_CHECK_RESULT(vkAllocateMemory(m_device->GetLogicalDevice(), &memAlloc, nullptr, &staginIndices.memory));
-		VK_CHECK_RESULT(vkMapMemory(m_device->GetLogicalDevice(), staginIndices.memory, 0, indexData.size(), 0, &data));
-		memcpy(data, indexData.data(), indexData.size());
+		VK_CHECK_RESULT(vkMapMemory(m_device->GetLogicalDevice(), staginIndices.memory, 0, indexDataSize, 0, &data));
+		memcpy(data, indexData.data(), indexDataSize);
 		vkUnmapMemory(m_device->GetLogicalDevice(), staginIndices.memory);
 		VK_CHECK_RESULT(vkBindBufferMemory(m_device->GetLogicalDevice(), staginIndices.buffer, staginIndices.memory, 0));
 
@@ -83,7 +84,7 @@ namespace Concise
 		copyRegion.size = vertexDataSize;
 		vkCmdCopyBuffer(copyCmd, stagingVertices.buffer, m_vertexBuffer.buffer, 1, &copyRegion);
 		
-		copyRegion.size = indexData.size();
+		copyRegion.size = indexDataSize;
 		vkCmdCopyBuffer(copyCmd, staginIndices.buffer, m_indexBuffer.buffer, 1, &copyRegion);
 
 		m_device->FlushCommandBuffer(copyCmd);
