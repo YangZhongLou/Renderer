@@ -19,7 +19,7 @@ namespace Concise
 	}
 	
 	/** refine it, delete duplicated codes */
-	void Vertices::Submit(std::vector<Vertex>& vertexData, std::vector<UInt32>& indexData)
+	void Vertices::Submit(std::vector<Vertex> & vertexData, std::vector<UInt32> & indexData)
 	{
 		Buffer stagingVertices, staginIndices;
 		
@@ -78,7 +78,7 @@ namespace Concise
 
 		VkCommandBuffer copyCmd = m_device->GetCommandBuffer(true);
 		
-		VkBufferCopy copyRegion = {};
+		VkBufferCopy copyRegion {};
 
 		copyRegion.size = vertexDataSize;
 		vkCmdCopyBuffer(copyCmd, stagingVertices.buffer, m_vertexBuffer.buffer, 1, &copyRegion);

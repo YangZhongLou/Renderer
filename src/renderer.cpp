@@ -17,6 +17,8 @@ namespace Concise
 	
 	Renderer::~Renderer()
 	{
+		DestroyCommandBuffers();
+
 		if (m_descriptorPool != VK_NULL_HANDLE)
 		{
 			vkDestroyDescriptorPool(m_device->GetLogicalDevice(), m_descriptorPool, nullptr);
@@ -24,7 +26,7 @@ namespace Concise
 
 		vkDestroyRenderPass(m_device->GetLogicalDevice(), m_renderPass, nullptr);
 
-		for (uint32_t i = 0; i < m_framebuffers.size(); i++)
+		for (UInt32 i = 0; i < m_framebuffers.size(); i++)
 		{
 			vkDestroyFramebuffer(m_device->GetLogicalDevice(), m_framebuffers[i], nullptr);
 		}
@@ -48,8 +50,6 @@ namespace Concise
 		vkDestroyImage(m_device->GetLogicalDevice(), m_depthStencil.image, nullptr);
 		vkFreeMemory(m_device->GetLogicalDevice(), m_depthStencil.mem, nullptr);
 
-		vkFreeCommandBuffers(m_device->GetLogicalDevice(), m_device->GetCommandPool(), static_cast<uint32_t>(m_drawCmdBuffers.size()), m_drawCmdBuffers.data());
-
 		SAFE_DELETE(m_uniforms);
 		SAFE_DELETE(m_vertices);
 		SAFE_DELETE(m_swapchain);
@@ -68,11 +68,11 @@ namespace Concise
 		InitVeritces();
 		InitDepthStencil();
 		InitRenderPass();
-		InitFramebuffers();
 		InitDescriptorPool();
 		InitDescriptorSetLayout();
 		InitDescriptorSet();
 		InitPipelineCache();
+		InitFramebuffers();
 		InitPipelines();
 		m_prepared = true;
 	}
@@ -84,7 +84,7 @@ namespace Concise
 	
 	void Renderer::DestroyCommandBuffers()
 	{
-		vkFreeCommandBuffers(m_device->GetLogicalDevice(), m_device->GetCommandPool(), static_cast<uint32_t>(m_drawCmdBuffers.size()), m_drawCmdBuffers.data());
+		vkFreeCommandBuffers(m_device->GetLogicalDevice(), m_device->GetCommandPool(), static_cast<UInt32>(m_drawCmdBuffers.size()), m_drawCmdBuffers.data());
 	}
 
 	void Renderer::CreateCommandBuffers()
@@ -241,6 +241,7 @@ namespace Concise
 	{
 		m_uniforms = new Uniforms(m_device, this);
 		m_uniforms->Init();
+		m_uniforms->UpdateVS();
 	}
 
 	void Renderer::InitDescriptorPool()
@@ -327,7 +328,7 @@ namespace Concise
 		VkSubpassDescription subpassDescription = VkFactory::SubpassDescription(VK_PIPELINE_BIND_POINT_GRAPHICS);
 		subpassDescription.pColorAttachments = &colorReference;							
 		subpassDescription.pDepthStencilAttachment = &depthReference;					
-
+		
 		std::vector<VkSubpassDependency> dependencies;
 		VkFactory::SubpassDependencies(dependencies);
 
@@ -397,6 +398,7 @@ namespace Concise
 		FILE *stream;
 		freopen_s(&stream, "CONOUT$", "w+", stdout);
 		freopen_s(&stream, "CONOUT$", "w+", stderr);
+
 		SetConsoleTitle(TEXT(title.c_str()));
 	}
 
@@ -756,6 +758,8 @@ namespace Concise
 			}
 			RenderFrame();
 		}
+
+		vkDeviceWaitIdle(m_device->GetLogicalDevice());
 	}
 	
 	void Renderer::SubmitVerticesData(std::vector<Vertex> & verticesData, std::vector<UInt32> & indicesData)

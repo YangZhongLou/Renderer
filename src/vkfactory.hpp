@@ -387,7 +387,7 @@ namespace Concise
 			return imageSubresourceRange;
 		}
 	
-		inline VkImageViewCreateInfo ImageViewCreateInfo(VkFormat format, VkImage image, VkImageSubresourceRange subresourceRange)
+		inline VkImageViewCreateInfo ImageViewCreateInfo(VkFormat format, VkImage image, VkImageSubresourceRange & subresourceRange)
 		{
 			VkImageViewCreateInfo imageViewCreateInfo = {};
 			imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
