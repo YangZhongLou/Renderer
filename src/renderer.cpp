@@ -77,7 +77,7 @@ namespace Concise
 		VkCommandBufferBeginInfo commandBufferBeginInfo = VkFactory::CommandBufferBeginInfo();
 		
 		VkClearValue clearValues[2];
-		clearValues[0].color = { { 0.0f, 0.0f, 0.2f, 1.0f } };
+		clearValues[0].color = { { 1.0f, 0.0f, 0.0f, 1.0f } };
 		clearValues[1].depthStencil = { 1.0f, 0 };
 		
 		VkRenderPassBeginInfo renderPassBeginInfo = VkFactory::RenderPassBeginInfo();
@@ -286,14 +286,14 @@ namespace Concise
 	
 	void Renderer::InitRenderPass()
 	{
-		std::vector<VkAttachmentDescription> attachments(2);
+		std::vector<VkAttachmentDescription> attachments;
 		// Color attachment
-		attachments[0] = VkFactory::AttachmentDescription(m_swapchain->GetColorFormat());
+		attachments.push_back(VkFactory::AttachmentDescription(m_swapchain->GetColorFormat()));
 		attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;							
 		attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;					
 																						
 		// Depth attachment
-		attachments[1] = VkFactory::AttachmentDescription(m_device->GetSupportedDepthFormat());
+		attachments.push_back(VkFactory::AttachmentDescription(m_device->GetSupportedDepthFormat()));
 		attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;	
 
 		// Setup attachment references

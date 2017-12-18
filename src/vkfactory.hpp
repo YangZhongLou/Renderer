@@ -19,7 +19,7 @@ namespace Concise
 	{	
 		inline VkPresentInfoKHR PresentInfoKHR(VkSwapchainKHR * swapchain, UInt32 imageIndex)
 		{
-			VkPresentInfoKHR presentInfo = {};
+			VkPresentInfoKHR presentInfo {};
 			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 			presentInfo.pNext = NULL;
 			presentInfo.swapchainCount = 1;
@@ -90,14 +90,14 @@ namespace Concise
 	
 		inline VkPipelineCacheCreateInfo PipelineCacheCreateInfo()
 		{
-			VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
+			VkPipelineCacheCreateInfo pipelineCacheCreateInfo {};
 			pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 			return pipelineCacheCreateInfo;
 		}
 	
 		inline VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule & module)
 		{
-			VkPipelineShaderStageCreateInfo shaderStageCreateInfo;
+			VkPipelineShaderStageCreateInfo shaderStageCreateInfo {};
 			shaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			shaderStageCreateInfo.stage = stage;
 			shaderStageCreateInfo.module = module;
@@ -109,7 +109,7 @@ namespace Concise
 		inline VkPipelineVertexInputStateCreateInfo PipelineVertexInputStateCreateInfo(std::vector<VkVertexInputBindingDescription> & vertexBindingDescriptions, 
 			std::vector<VkVertexInputAttributeDescription> & vertexAttributeDescriptions)
 		{
-			VkPipelineVertexInputStateCreateInfo vertexInputState = {};
+			VkPipelineVertexInputStateCreateInfo vertexInputState {};
 			vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 			vertexInputState.vertexBindingDescriptionCount = static_cast<UInt32>(vertexBindingDescriptions.size());
 			vertexInputState.pVertexBindingDescriptions = vertexBindingDescriptions.data();
@@ -121,7 +121,7 @@ namespace Concise
 		
 		inline void VertexInputBindingDescriptions(std::vector<VkVertexInputBindingDescription> & vertexBindingDescriptions)
 		{
-			VkVertexInputBindingDescription vertexInputBinding;
+			VkVertexInputBindingDescription vertexInputBinding {};
 			vertexInputBinding.binding = 0;
 			vertexInputBinding.stride = sizeof(Vertex);
 			vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
@@ -148,7 +148,7 @@ namespace Concise
 	
 		inline VkPipelineMultisampleStateCreateInfo PipelineMultisampleStateCreateInfo()
 		{
-			VkPipelineMultisampleStateCreateInfo multisampleState = {};
+			VkPipelineMultisampleStateCreateInfo multisampleState {};
 			multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 			multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 			multisampleState.pSampleMask = nullptr;
@@ -158,7 +158,7 @@ namespace Concise
 	
 		inline VkPipelineDepthStencilStateCreateInfo PipelineDepthStencilStateCreateInfo()
 		{
-			VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
+			VkPipelineDepthStencilStateCreateInfo depthStencilState {};
 			depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 			depthStencilState.depthTestEnable = VK_TRUE;
 			depthStencilState.depthWriteEnable = VK_TRUE;
@@ -175,7 +175,7 @@ namespace Concise
 	
 		inline VkPipelineDynamicStateCreateInfo PipelineDynamicStateCreateInfo(std::vector<VkDynamicState> & dynamicStates)
 		{
-			VkPipelineDynamicStateCreateInfo dynamicState = {};
+			VkPipelineDynamicStateCreateInfo dynamicState {};
 			dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 			dynamicState.pDynamicStates = dynamicStates.data();
 			dynamicState.dynamicStateCount = static_cast<UInt32>(dynamicStates.size());
@@ -185,7 +185,7 @@ namespace Concise
 		
 		inline VkPipelineViewportStateCreateInfo PipelineViewportStateCreateInfo()
 		{
-			VkPipelineViewportStateCreateInfo viewportState = {};
+			VkPipelineViewportStateCreateInfo viewportState {};
 			viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 			viewportState.viewportCount = 1;
 			viewportState.scissorCount = 1;
@@ -195,7 +195,7 @@ namespace Concise
 
 		inline VkPipelineColorBlendStateCreateInfo PipelineColorBlendStateCreateInfo(std::vector<VkPipelineColorBlendAttachmentState> & attachments)
 		{
-			VkPipelineColorBlendStateCreateInfo colorBlendState = {};
+			VkPipelineColorBlendStateCreateInfo colorBlendState {};
 			colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 			colorBlendState.attachmentCount = static_cast<UInt32>(attachments.size());
 			colorBlendState.pAttachments = attachments.data();
@@ -205,7 +205,7 @@ namespace Concise
 
 		inline VkPipelineColorBlendAttachmentState PipelineColorBlendAttachmentState()
 		{
-			VkPipelineColorBlendAttachmentState blendAttachmentState = {};
+			VkPipelineColorBlendAttachmentState blendAttachmentState {};
 			blendAttachmentState.colorWriteMask = 0xf;
 			blendAttachmentState.blendEnable = VK_FALSE;
 			
@@ -214,7 +214,7 @@ namespace Concise
 		
 		inline VkPipelineRasterizationStateCreateInfo PipelineRasterizationStateCreateInfo()
 		{
-			VkPipelineRasterizationStateCreateInfo rasterizationState;
+			VkPipelineRasterizationStateCreateInfo rasterizationState {};
 			rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 			rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
 			rasterizationState.cullMode = VK_CULL_MODE_NONE;
@@ -229,7 +229,7 @@ namespace Concise
 	
 		inline VkPipelineInputAssemblyStateCreateInfo PipelineInputAssemblyStateCreateInfo()
 		{
-			VkPipelineInputAssemblyStateCreateInfo inputAssemblyState;
+			VkPipelineInputAssemblyStateCreateInfo inputAssemblyState {};
 			inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 			inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 			
@@ -250,7 +250,7 @@ namespace Concise
 			VkRenderPass & renderPass,
 			VkPipelineTessellationStateCreateInfo * tessellationState = nullptr)
 		{
-			VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo;
+			VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo {};
 			graphicsPipelineCreateInfo.flags = VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
 			graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 			graphicsPipelineCreateInfo.layout = layout;
@@ -565,7 +565,7 @@ namespace Concise
 		
 		inline VkSubmitInfo SubmitInfo()
 		{
-			VkSubmitInfo submitInfo;
+			VkSubmitInfo submitInfo {};
 			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 			return submitInfo;

@@ -42,6 +42,7 @@ namespace Test
 			std::vector<Concise::UInt32> indicesData = { 0, 1, 2 };
 			
 			m_renderer->SubmitVerticesData(verticesData, indicesData);
+			m_renderer->BuildCommandBuffers();
 		}
 		
 		void Loop()

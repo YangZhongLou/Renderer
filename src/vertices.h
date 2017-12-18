@@ -13,8 +13,8 @@ namespace Concise
 	
 	struct Vertex
 	{
-		float positions[4];
-		float colors[4];
+		float positions[3];
+		float colors[3];
 	};
 	
 	struct Buffer
