@@ -17,13 +17,13 @@ namespace Concise
 
 	namespace VkFactory
 	{	
-		inline VkPresentInfoKHR PresentInfoKHR(VkSwapchainKHR * swapchain, UInt32 imageIndex)
+		inline VkPresentInfoKHR PresentInfoKHR(VkSwapchainKHR & swapchain, UInt32 & imageIndex)
 		{
 			VkPresentInfoKHR presentInfo {};
 			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 			presentInfo.pNext = NULL;
 			presentInfo.swapchainCount = 1;
-			presentInfo.pSwapchains = swapchain;
+			presentInfo.pSwapchains = &swapchain;
 			presentInfo.pImageIndices = &imageIndex;
 			
 			return presentInfo;
@@ -129,7 +129,7 @@ namespace Concise
 			vertexBindingDescriptions.push_back(vertexInputBinding);
 		}
 	
-		inline void VertexInputAttributeDescription(std::vector<VkVertexInputAttributeDescription> & vertexInputAttributeDescriptions)
+		inline void VertexInputAttributeDescriptions(std::vector<VkVertexInputAttributeDescription> & vertexInputAttributeDescriptions)
 		{
 			VkVertexInputAttributeDescription vertexInputAttributeDescription {};
 			

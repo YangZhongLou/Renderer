@@ -288,7 +288,7 @@ namespace Concise
 	
 	VkResult Swapchain::QueuePresent(VkQueue queue, UInt32 imageIndex, VkSemaphore waitSemaphore)
 	{
-		VkPresentInfoKHR presentInfo = VkFactory::PresentInfoKHR(&m_swapchain, imageIndex);
+		VkPresentInfoKHR presentInfo = VkFactory::PresentInfoKHR(m_swapchain, imageIndex);
 		if (waitSemaphore != VK_NULL_HANDLE)
 		{
 			presentInfo.pWaitSemaphores = &waitSemaphore;

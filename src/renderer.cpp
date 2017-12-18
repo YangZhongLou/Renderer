@@ -77,7 +77,7 @@ namespace Concise
 		VkCommandBufferBeginInfo commandBufferBeginInfo = VkFactory::CommandBufferBeginInfo();
 		
 		VkClearValue clearValues[2];
-		clearValues[0].color = { { 1.0f, 0.0f, 0.0f, 1.0f } };
+		clearValues[0].color = { { 0.0f, 0.0f, 0.2f, 1.0f } };
 		clearValues[1].depthStencil = { 1.0f, 0 };
 		
 		VkRenderPassBeginInfo renderPassBeginInfo = VkFactory::RenderPassBeginInfo();
@@ -340,7 +340,7 @@ namespace Concise
 		VkFactory::VertexInputBindingDescriptions(vertexInputBindingDecriptions);
 		
 		std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions;
-		VkFactory::VertexInputAttributeDescription(vertexInputAttributeDescriptions);
+		VkFactory::VertexInputAttributeDescriptions(vertexInputAttributeDescriptions);
 
 		VkPipelineVertexInputStateCreateInfo vertexInputState = VkFactory::PipelineVertexInputStateCreateInfo(vertexInputBindingDecriptions, vertexInputAttributeDescriptions);
 
