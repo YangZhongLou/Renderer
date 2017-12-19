@@ -2,6 +2,7 @@
 #include "device.h"
 #include "vkfactory.hpp"
 #include "utils.h"
+#include "buffer.hpp"
 
 namespace Concise
 {
@@ -16,6 +17,31 @@ namespace Concise
 
 		vkDestroyBuffer(m_device->GetLogicalDevice(), m_indexBuffer.buffer, nullptr);
 		vkFreeMemory(m_device->GetLogicalDevice(), m_indexBuffer.memory, nullptr);
+	}
+	
+	void Vertices::Init()
+	{
+		VkBufferCreateInfo vertexBufferCreateInfo = VkFactory::BufferCreateInfo(DEFAULT_VERTEX_DATA_SIZE, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+		
+		vertexBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		VK_CHECK_RESULT(vkCreateBuffer(m_device->GetLogicalDevice(), &vertexBufferCreateInfo, nullptr, &m_vertexBuffer.buffer));
+		
+		VkMemoryRequirements memReqs;
+		vkGetBufferMemoryRequirements(m_device->GetLogicalDevice(), m_vertexBuffer.buffer, &memReqs);
+		memAlloc.allocationSize = memReqs.size;
+		memAlloc.memoryTypeIndex = m_device->GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		VK_CHECK_RESULT(vkAllocateMemory(m_device->GetLogicalDevice(), &memAlloc, nullptr, &m_vertexBuffer.memory));
+		
+		VkBufferCreateInfo indexBufferCreateInfo = VkFactory::BufferCreateInfo(DEFAULT_INDEX_DATA_SIZE, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+		indexBufferCreateInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		VK_CHECK_RESULT(vkCreateBuffer(m_device->GetLogicalDevice(), &indexBufferCreateInfo, nullptr, &m_indexBuffer.buffer));
+		vkGetBufferMemoryRequirements(m_device->GetLogicalDevice(), m_indexBuffer.buffer, &memReqs);
+		memAlloc.allocationSize = memReqs.size;
+		memAlloc.memoryTypeIndex = m_device->GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		VK_CHECK_RESULT(vkAllocateMemory(m_device->GetLogicalDevice(), &memAlloc, nullptr, &m_indexBuffer.memory));
+		
+		VkBufferCreateInfo vertexBufferCreateInfo = VkFactory::BufferCreateInfo(vertexDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+		VK_CHECK_RESULT(vkCreateBuffer(m_device->GetLogicalDevice(), &vertexBufferCreateInfo, nullptr, &stagingVertices.buffer));
 	}
 	
 	/** refine it, delete duplicated codes */

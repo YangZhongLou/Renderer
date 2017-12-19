@@ -123,20 +123,24 @@ namespace Concise
 
 			vkCmdBeginRenderPass(m_drawCmdBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-			VkViewport viewport = VkFactory::ViewPort(static_cast<float>(m_width), static_cast<float>(m_height), 0.0f, 1.0f);
-			vkCmdSetViewport(m_drawCmdBuffers[i], 0, 1, &viewport);
-
+			VkDeviceSize offsets[1] = { 0 };
+			vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &m_vertices->GetVertexBuffer().buffer, offsets);
+			vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_vertices->GetIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
+			
 			VkRect2D scissor = VkFactory::Scissor(m_width, m_height);
 			vkCmdSetScissor(m_drawCmdBuffers[i], 0, 1, &scissor);
 
 			vkCmdBindDescriptorSets(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
+			
+			for (Int32 j = 0; j < m_viewports.size(); ++j)
+			{
+				vkCmdSetViewport(m_drawCmdBuffers[i], 0, 1, &m_viewports[i]);
 
-			vkCmdBindPipeline(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+				vkCmdBindPipeline(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelines[i]);
 
-			VkDeviceSize offsets[1] = { 0 };
-			vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &m_vertices->GetVertexBuffer().buffer, offsets);
-			vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_vertices->GetIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
-			vkCmdDrawIndexed(m_drawCmdBuffers[i], m_vertices->GetIndexCount(), 1, 0, 0, 1);
+				vkCmdDrawIndexed(m_drawCmdBuffers[i], m_vertices->GetIndexCount(), 1, 0, 0, 1);
+			}
+			
 			vkCmdEndRenderPass(m_drawCmdBuffers[i]);
 
 			VK_CHECK_RESULT(vkEndCommandBuffer(m_drawCmdBuffers[i]));
@@ -771,6 +775,17 @@ namespace Concise
 		m_vertices->Submit(verticesData, indicesData);
 	}
 	
+	void Renderer::SetViewports(std::vector<VkViewport> & viewports)
+	{
+		m_viewports = std::move(viewports);
+	}
+	
+	void Renderer::SetPipelines(std::vector<VkPipeline> & pipelines)
+	{
+		m_pipelines = std::move(pipelines);
+		assert(m_pipelines.size() == m_viewports.size());
+	}
+	
 	void Renderer::RenderFrame()
 	{
 		if (m_viewUpdated)
@@ -798,5 +813,7 @@ namespace Concise
 		VK_CHECK_RESULT(vkQueueSubmit(m_device->GetQueue(), 1, &submitInfo, m_fences[m_currentBuffer]));
 		
 		VK_CHECK_RESULT(m_swapchain->QueuePresent(m_device->GetQueue(), m_currentBuffer, m_renderCompleteSemaphore));
+
+		VK_CHECK_RESULT(vkQueueWaitIdle(m_device->GetQueue()));
 	}
 }

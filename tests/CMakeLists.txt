@@ -25,7 +25,8 @@ function(build_test test_name)
 endfunction(build_test)
 
 set(tests
-	triangle)
+	triangle
+	pipelines)
 
 function(build_tests)
 	foreach(test_name ${tests})

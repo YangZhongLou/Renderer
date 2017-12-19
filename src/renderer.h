@@ -34,9 +34,10 @@ namespace Concise
 		VkDescriptorSetLayout m_descriptorSetLayout;
 		VkDescriptorSet m_descriptorSet;
 		
-		VkPipelineLayout m_pipelineLayout;
-		VkPipeline m_pipeline;
 		VkPipelineCache m_pipelineCache;
+		VkPipelineLayout m_pipelineLayout;
+		std::vector<VkPipeline> m_pipelines;
+		
 		
 		Vertices * m_vertices;
 		Uniforms * m_uniforms;
@@ -48,6 +49,7 @@ namespace Concise
 		} m_depthStencil;
 		VkRenderPass m_renderPass;
 		std::vector<VkFramebuffer> m_framebuffers;
+		std::vector<VkViewport> m_viewports;
 		Swapchain * m_swapchain;
 		
 		/** refactor */
@@ -118,7 +120,9 @@ namespace Concise
 		void RenderFrame();
 		
 		void SubmitVerticesData(std::vector<Vertex> & verticesData, std::vector<UInt32> & indicesData);
-
+		void SetViewports(std::vector<VkViewport> & viewports);
+		void SetPipelines(std::vector<VkPipeline> & pipelines);
+		
 		UInt32 GetWidth() const { return m_width; }
 		UInt32 GetHeight() const { return m_height; }
 		float GetZoom() const { return m_zoom; };
@@ -141,7 +145,7 @@ namespace Concise
 		void InitVulkanSync();
 
 		void InitVeritces();
-
+		void InitViewports();
 		void InitPipelineCache();
 		
 		void InitDepthStencil();

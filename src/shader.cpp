@@ -10,8 +10,9 @@
 
 namespace Concise
 {
-	Shader::Shader(Device * device, std::string filename)
+	Shader::Shader(Device * device, ShaderType shaderType, std::string filename)
 	{
+		m_shaderType = shaderType;
 		m_device = device;
 		std::ifstream fin(filename, std::ios::binary | std::ios::in | std::ios::ate);
 		
