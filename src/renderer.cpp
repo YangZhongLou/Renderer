@@ -13,6 +13,7 @@ namespace Concise
 {
 	Renderer::Renderer()
 	{
+		m_swapchain = nullptr;
 	}
 	
 	Renderer::~Renderer()
@@ -574,7 +575,8 @@ namespace Concise
 
 		m_width = m_destWidth;
 		m_height = m_destHeight;
-		InitSwapchain();
+
+		m_swapchain->CreateSwapchain(&m_width, &m_height, m_settings.vsync);
 
 		vkDestroyImageView(m_device->GetLogicalDevice(), m_depthStencil.view, nullptr);
 		vkDestroyImage(m_device->GetLogicalDevice(), m_depthStencil.image, nullptr);
@@ -604,7 +606,6 @@ namespace Concise
 
 		m_camera.updateAspectRatio((float)m_width / (float)m_height);
 
-		// Notify derived class
 		WindowResized();
 		ViewChanged();
 
@@ -613,10 +614,12 @@ namespace Concise
 
 	void Renderer::WindowResized()
 	{
+		m_uniforms->UpdateVS();
 	}
 
 	void Renderer::ViewChanged()
 	{
+		m_uniforms->UpdateVS();
 	}
 
 	void Renderer::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -756,6 +759,7 @@ namespace Concise
 					break;
 				}
 			}
+
 			RenderFrame();
 		}
 
@@ -769,6 +773,12 @@ namespace Concise
 	
 	void Renderer::RenderFrame()
 	{
+		if (m_viewUpdated)
+		{
+			m_viewUpdated = false;
+			ViewChanged();
+		}
+
 		VK_CHECK_RESULT(m_swapchain->AcquireNextImage(m_presentCompleteSemaphore, &m_currentBuffer));
 
 		VK_CHECK_RESULT(vkWaitForFences(m_device->GetLogicalDevice(), 1, &m_fences[m_currentBuffer], VK_TRUE, UINT64_MAX));
