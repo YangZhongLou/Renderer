@@ -60,7 +60,7 @@ namespace Concise
 		bool m_paused;
 		UInt32 m_width = 1280;
 		UInt32 m_height = 720;
-		float m_zoom = 0;
+		float m_zoom = -2.5;
 
 		float m_rotationSpeed = 1.0f;
 		float m_zoomSpeed = 1.0f;

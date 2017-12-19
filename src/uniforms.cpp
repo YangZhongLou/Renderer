@@ -49,7 +49,7 @@ namespace Concise
 		m_vsData.modelMatrix = glm::rotate(m_vsData.modelMatrix, glm::radians(m_renderer->GetRotation().y), glm::vec3(0.0f, 1.0f, 0.0f));
 		m_vsData.modelMatrix = glm::rotate(m_vsData.modelMatrix, glm::radians(m_renderer->GetRotation().z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-		void * data;
+		UInt8 * data;
 		VK_CHECK_RESULT(vkMapMemory(m_device->GetLogicalDevice(), m_vsBuffer.memory, 0, sizeof(m_vsData), 0, (void **)&data));
 		memcpy(data, &m_vsData, sizeof(m_vsData));
 		vkUnmapMemory(m_device->GetLogicalDevice(), m_vsBuffer.memory);

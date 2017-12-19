@@ -68,8 +68,8 @@ namespace Concise
 		InitVeritces();
 		InitDepthStencil();
 		InitRenderPass();
-		InitDescriptorPool();
 		InitDescriptorSetLayout();
+		InitDescriptorPool();
 		InitDescriptorSet();
 		InitPipelineCache();
 		InitFramebuffers();
