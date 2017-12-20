@@ -69,16 +69,15 @@ namespace Concise
 	#define DEFAULT_INDEX_DATA_SIZE 2048 * sizeof(UInt32) * 16
 	#define DEFAULT_STAGING_BUFFER_SIZE 2048 * sizeof(UInt32)
 	
-	
 	class Vertices
 	{
 	private:
-		Buffer m_vertexStagingBuffer;
-		Buffer m_vertexBuffer;
+		Buffer * m_vertexStagingBuffer;
+		Buffer * m_vertexBuffer;
 		UInt32 m_vertexDataOffset;
 		
-		Buffer m_indexStagingBuffer;
-		Buffer m_indexBuffer;
+		Buffer * m_indexStagingBuffer;
+		Buffer * m_indexBuffer;
 		UInt32 m_indexDataOffset;
 		UInt32 m_indexCount;
 		
@@ -89,8 +88,8 @@ namespace Concise
 	public:
 		void Init();
 		void Submit(std::vector<Vertex>& vertexData, std::vector<UInt32>& indexData);
-		const Buffer & GetVertexBuffer() const { return m_vertexBuffer; }
-		const Buffer & GetIndexBuffer() const { return m_indexBuffer; }
+		const Buffer & GetVertexBuffer() const { return *m_vertexBuffer; }
+		const Buffer & GetIndexBuffer() const { return *m_indexBuffer; }
 		UInt32 GetIndexCount() const { return m_indexCount; };
 	};
 }
