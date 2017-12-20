@@ -393,7 +393,7 @@ namespace Concise
 			m_renderPass
 			);
 		
-		VK_CHECK_RESULT(vkCreateGraphicsPipelines(m_device->GetLogicalDevice(), m_pipelineCache, 1, &graphicsPipelineCreateInfo, nullptr, &m_pipeline));
+		VK_CHECK_RESULT(vkCreateGraphicsPipelines(m_device->GetLogicalDevice(), m_pipelineCache, 1, &graphicsPipelineCreateInfo, nullptr, &m_pipeline[0]));
 	}
 	
 	void Renderer::InitConsole(std::string title)
