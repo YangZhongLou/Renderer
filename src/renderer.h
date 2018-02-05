@@ -1,5 +1,5 @@
-/*
-* This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+/**
+* Author ZhongLou Yang, 2018-2-5
 */
 #pragma once
 
@@ -20,10 +20,6 @@ namespace Concise
 	class Renderer
 	{
 	private:
-		VkSemaphore m_presentCompleteSemaphore;
-		VkSemaphore m_renderCompleteSemaphore;
-		std::vector<VkFence> m_fences;
-		
 		UInt32 m_currentBuffer = 0;
 		std::vector<VkCommandBuffer> m_drawCmdBuffers;
 		
@@ -142,7 +138,6 @@ namespace Concise
 		void InitVulkanDebugger();
 		void InitSwapchain();
 		void InitCommandBuffers();
-		void InitVulkanSync();
 
 		void InitVeritces();
 		void InitViewports();

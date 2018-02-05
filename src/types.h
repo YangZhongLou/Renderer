@@ -1,5 +1,5 @@
-/*
-* This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+/**
+* Author ZhongLou Yang, 2018-2-5
 */
 #pragma once
 

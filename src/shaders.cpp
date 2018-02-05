@@ -3,7 +3,7 @@
 */
 
 #include "shaders.h"
-#include "vkfactory.hpp"
+#include "vk_factory.hpp"
 #include "utils.h"
 #include "device.h"
 

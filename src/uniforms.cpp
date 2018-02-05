@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "uniforms.h"
-#include "vkfactory.hpp"
+#include "vk_factory.hpp"
 #include "utils.h"
 #include "device.h"
 #include "renderer.h"

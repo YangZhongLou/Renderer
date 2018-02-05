@@ -1,6 +1,6 @@
 #include "renderer.h"
 #include "device.h"
-#include "vkfactory.hpp"
+#include "vk_factory.hpp"
 #include "utils.h"
 #include "uniforms.h"
 #include "swapchain.h"
@@ -226,20 +226,6 @@ namespace Concise
 	void Renderer::InitCommandBuffers()
 	{
 		CreateCommandBuffers();
-	}
-
-	void Renderer::InitVulkanSync()
-	{
-		VkSemaphoreCreateInfo semaphoreCreateInfo = VkFactory::SemaphoreCreateInfo();
-		VK_CHECK_RESULT(vkCreateSemaphore(m_device->GetLogicalDevice(), &semaphoreCreateInfo, nullptr, &m_presentCompleteSemaphore));
-		VK_CHECK_RESULT(vkCreateSemaphore(m_device->GetLogicalDevice(), &semaphoreCreateInfo, nullptr, &m_renderCompleteSemaphore));
-
-		VkFenceCreateInfo fenceCreateInfo = VkFactory::FenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
-		m_fences.resize(m_drawCmdBuffers.size());
-		for (auto& fence : m_fences)
-		{
-			VK_CHECK_RESULT(vkCreateFence(m_device->GetLogicalDevice(), &fenceCreateInfo, nullptr, &fence));
-		}
 	}
 
 	void Renderer::InitUniforms()
