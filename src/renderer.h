@@ -85,8 +85,6 @@ namespace Concise
 			bool overlay = false;
 		} m_settings;
 		
-		VkInstance m_vkInstance;
-
 #if defined(_WIN32)
 		HWND m_window;
 		HINSTANCE m_windowInstance;
@@ -133,7 +131,6 @@ namespace Concise
 
 	private:
 		void InitVulkan();
-		void InitVulkanInstance(bool enableValidation);
 		void InitVulkanDevice();
 		void InitVulkanDebugger();
 		void InitSwapchain();

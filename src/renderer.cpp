@@ -149,53 +149,11 @@ namespace Concise
 	
 	void Renderer::InitVulkan()
 	{
-		InitVulkanInstance(true);
 		InitVulkanDebugger();
 		InitVulkanDevice();
 		InitSwapchain();
 		InitCommandBuffers();
 		InitVulkanSync();
-	}
-	
-	void Renderer::InitVulkanInstance(bool enableValidation)
-	{
-		m_settings.validation = enableValidation;
-
-		VkApplicationInfo appInfo = VkFactory::ApplicationInfo();
-		std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME };
-
-	#if defined(_WIN32)
-		instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-	#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-		instanceExtensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
-	#elif defined(_DIRECT2DISPLAY)
-		instanceExtensions.push_back(VK_KHR_DISPLAY_EXTENSION_NAME);
-	#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-		instanceExtensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
-	#elif defined(VK_USE_PLATFORM_XCB_KHR)
-		instanceExtensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-	#elif defined(VK_USE_PLATFORM_IOS_MVK)
-		instanceExtensions.push_back(VK_MVK_IOS_SURFACE_EXTENSION_NAME);
-	#elif defined(VK_USE_PLATFORM_MACOS_MVK)
-		instanceExtensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
-	#endif
-
-		VkInstanceCreateInfo instanceCreateInfo = VkFactory::InstanceCreateInfo(appInfo);
-		if (instanceExtensions.size() > 0)
-		{
-			if (m_settings.validation)
-			{
-				instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-			}
-			instanceCreateInfo.enabledExtensionCount = static_cast<UInt32>(instanceExtensions.size());
-			instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
-		}
-		if (m_settings.validation)
-		{
-			instanceCreateInfo.enabledLayerCount = Debugger::validationLayerCount;
-			instanceCreateInfo.ppEnabledLayerNames = Debugger::validationLayerNames;
-		}
-		VK_CHECK_RESULT(vkCreateInstance(&instanceCreateInfo, nullptr, &m_vkInstance));
 	}
 	
 	void Renderer::InitVulkanDebugger()

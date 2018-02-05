@@ -13,23 +13,6 @@ namespace Concise
 {
 	Device::Device(VkInstance instance) : m_vkInstance(instance)
 	{
-	}
-	
-	Device::~Device()
-	{
-		if (m_cmdPool)
-		{
-			vkDestroyCommandPool(m_m_logicalDevice, m_cmdPool, nullptr);
-		}
-		
-		if (m_m_logicalDevice)
-		{
-			vkDestroyDevice(m_m_logicalDevice, nullptr);
-		}
-	}
-	
-	void Device::Init()
-	{
 		UInt32 gpuCount = 0;
 		VK_CHECK_RESULT(vkEnumeratePhysicalDevices(m_vkInstance, &gpuCount, nullptr));
 		assert(gpuCount > 0);
@@ -68,11 +51,7 @@ namespace Concise
 
 		vkGetDeviceQueue(m_m_logicalDevice, m_queueFamilyIndices.graphics, 0, &m_queue);
 
-		InitSupportedDepthFormat();
-	}
-	
-	void Device::InitSupportedDepthFormat()
-	{
+		/** find supported depth format */
 		std::vector<VkFormat> depthFormats = {
 			VK_FORMAT_D32_SFLOAT_S8_UINT,
 			VK_FORMAT_D32_SFLOAT,
@@ -81,7 +60,7 @@ namespace Concise
 			VK_FORMAT_D16_UNORM
 		};
 
-		for (auto& format : depthFormats)
+		for (auto & format : depthFormats)
 		{
 			VkFormatProperties formatProps;
 			vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &formatProps);
@@ -91,10 +70,21 @@ namespace Concise
 				return;
 			}
 		}
-		
-		assert(false);
 	}
 	
+	Device::~Device()
+	{
+		if (m_cmdPool)
+		{
+			vkDestroyCommandPool(m_m_logicalDevice, m_cmdPool, nullptr);
+		}
+		
+		if (m_m_logicalDevice)
+		{
+			vkDestroyDevice(m_m_logicalDevice, nullptr);
+		}
+	}
+
 	UInt32 Device::GetQueueFamilyIndex(VkQueueFlagBits queueFlags)
 	{
 		if (queueFlags & VK_QUEUE_COMPUTE_BIT)
