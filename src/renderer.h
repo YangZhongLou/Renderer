@@ -26,69 +26,24 @@ namespace Concise
 		Device * m_device;
 		Debugger * m_debugger;
 		
-		VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
-		VkDescriptorSetLayout m_descriptorSetLayout;
-		VkDescriptorSet m_descriptorSet;
-		
-		VkPipelineCache m_pipelineCache;
-		VkPipelineLayout m_pipelineLayout;
-		std::vector<VkPipeline> m_pipelines;
-		
 		
 		Vertices * m_vertices;
 		Uniforms * m_uniforms;
+		
 		struct
 		{
 			VkImage image;
 			VkDeviceMemory mem;
 			VkImageView view;
 		} m_depthStencil;
+		
 		VkRenderPass m_renderPass;
 		std::vector<VkFramebuffer> m_framebuffers;
 		std::vector<VkViewport> m_viewports;
-		Swapchain * m_swapchain;
 		
-		/** refactor */
-		UInt32 m_destWidth;
-		UInt32 m_destHeight;
-		bool m_resizing;
-
-		/** refactor */
-		bool m_prepared = false;
-		bool m_paused;
-		UInt32 m_width = 1280;
-		UInt32 m_height = 720;
-		float m_zoom = -2.5;
-
-		float m_rotationSpeed = 1.0f;
-		float m_zoomSpeed = 1.0f;
-		bool m_viewUpdated;
-
-		glm::vec3 m_rotation = glm::vec3();
-		glm::vec3 m_cameraPos = glm::vec3();
-		glm::vec2 m_mousePos;
-
-		struct 
-		{
-			bool left = false;
-			bool right = false;
-			bool middle = false;
-		} m_mouseButtons;
+		Swapchain * m_swapchain;
 
 		Camera m_camera;
-
-		struct Settings
-		{
-			bool validation = false;
-			bool fullscreen = false;
-			bool vsync = false;
-			bool overlay = false;
-		} m_settings;
-		
-#if defined(_WIN32)
-		HWND m_window;
-		HINSTANCE m_windowInstance;
-#endif
 
 	public:
 		Renderer();
@@ -146,9 +101,5 @@ namespace Concise
 		void InitPipelines();
 		
 		void InitUniforms();
-		void InitDescriptorPool();
-		/** refactor this later */
-		void InitDescriptorSetLayout();
-		void InitDescriptorSet();
 	};
 }

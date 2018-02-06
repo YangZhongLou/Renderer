@@ -57,6 +57,7 @@ namespace Concise
 		}
 	}
 	
+	/** TODO */
 	struct Vertex
 	{
 		float positions[3];

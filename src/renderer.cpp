@@ -195,27 +195,12 @@ namespace Concise
 
 	void Renderer::InitDescriptorPool()
 	{
-		/** TODO, refactor this later */
-		VkDescriptorPoolSize typeCounts[1];
-		typeCounts[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		typeCounts[0].descriptorCount = 1;
 
-		VkDescriptorPoolCreateInfo descriptorPoolInfo = VkFactory::DescriptorPoolCreateInfo();
-		descriptorPoolInfo.poolSizeCount = 1;
-		descriptorPoolInfo.pPoolSizes = typeCounts;
-		descriptorPoolInfo.maxSets = 1;
-
-		VK_CHECK_RESULT(vkCreateDescriptorPool(m_device->GetLogicalDevice(), &descriptorPoolInfo, nullptr, &m_descriptorPool));
 	}
 	
 	void Renderer::InitDescriptorSetLayout()
 	{
-		VkDescriptorSetLayoutBinding layoutBinding = VkFactory::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
-		VkDescriptorSetLayoutCreateInfo descriptorLayoutCreateInfo = VkFactory::DescriptorSetLayoutCreateInfo(layoutBinding);
 
-		VK_CHECK_RESULT(vkCreateDescriptorSetLayout(m_device->GetLogicalDevice(), &descriptorLayoutCreateInfo, nullptr, &m_descriptorSetLayout));
-		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = VkFactory::PipelineLayoutCreateInfo(m_descriptorSetLayout);
-		VK_CHECK_RESULT(vkCreatePipelineLayout(m_device->GetLogicalDevice(), &pipelineLayoutCreateInfo, nullptr, &m_pipelineLayout));
 	}
 	
 	void Renderer::InitDescriptorSet()
@@ -287,57 +272,12 @@ namespace Concise
 	
 	void Renderer::InitPipelineCache()
 	{
-		VkPipelineCacheCreateInfo pipelineCacheCreateInfo = VkFactory::PipelineCacheCreateInfo();
-		VK_CHECK_RESULT(vkCreatePipelineCache(m_device->GetLogicalDevice(), &pipelineCacheCreateInfo, nullptr, &m_pipelineCache))
+
 	}
 	
 	void Renderer::InitPipelines()
 	{
-		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = VkFactory::PipelineInputAssemblyStateCreateInfo();
-		VkPipelineRasterizationStateCreateInfo rasterizationState = VkFactory::PipelineRasterizationStateCreateInfo();
-		
-		VkPipelineColorBlendAttachmentState blendAttachmentState = VkFactory::PipelineColorBlendAttachmentState();
-		std::vector<VkPipelineColorBlendAttachmentState> colorBlendStateAttachments;
-		colorBlendStateAttachments.push_back(blendAttachmentState);
-		VkPipelineColorBlendStateCreateInfo colorBlendState = VkFactory::PipelineColorBlendStateCreateInfo(colorBlendStateAttachments);
-		VkPipelineViewportStateCreateInfo viewportState = VkFactory::PipelineViewportStateCreateInfo();
 
-		std::vector<VkDynamicState> dynamicStateEnables;
-		dynamicStateEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT);
-		dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
-		VkPipelineDynamicStateCreateInfo dynamicState = VkFactory::PipelineDynamicStateCreateInfo(dynamicStateEnables);
-		
-		VkPipelineDepthStencilStateCreateInfo depthStencilState = VkFactory::PipelineDepthStencilStateCreateInfo();
-		VkPipelineMultisampleStateCreateInfo multisampleState = VkFactory::PipelineMultisampleStateCreateInfo();
-				
-		std::vector<VkVertexInputBindingDescription> vertexInputBindingDecriptions;
-		VkFactory::VertexInputBindingDescriptions(vertexInputBindingDecriptions);
-		
-		std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions;
-		VkFactory::VertexInputAttributeDescriptions(vertexInputAttributeDescriptions);
-
-		VkPipelineVertexInputStateCreateInfo vertexInputState = VkFactory::PipelineVertexInputStateCreateInfo(vertexInputBindingDecriptions, vertexInputAttributeDescriptions);
-
-		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-		Shader vertexShader(m_device, ASSETS_DIR + std::string("shaders/triangle/triangle.vert.spv"));
-		Shader fragmentShader(m_device, ASSETS_DIR + std::string("shaders/triangle/triangle.frag.spv"));
-		shaderStages.push_back(VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertexShader.GetModule()));
-		shaderStages.push_back(VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader.GetModule()));
-
-		VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = VkFactory::GraphicsPipelineCreateInfo(shaderStages,
-			&vertexInputState,
-			&inputAssemblyState,
-			&viewportState,
-			&rasterizationState,
-			&multisampleState,
-			&depthStencilState,
-			&colorBlendState,
-			&dynamicState,
-			m_pipelineLayout,
-			m_renderPass
-			);
-		
-		VK_CHECK_RESULT(vkCreateGraphicsPipelines(m_device->GetLogicalDevice(), m_pipelineCache, 1, &graphicsPipelineCreateInfo, nullptr, &m_pipeline[0]));
 	}
 	
 	void Renderer::InitConsole(std::string title)
