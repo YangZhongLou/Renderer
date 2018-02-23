@@ -29,5 +29,17 @@ namespace Concise
 		UInt32 m_destWidth;
 		UInt32 m_destHeight;
 		bool m_resizing;
+	public:
+		Inputs();
+		~Inputs();
+	public:
+		void HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+		void KeyPressed(UInt32) {}
+		void HandleMouseMove(Int32 x, Int32 y);
+		void MouseMoved(double x, double y, bool handled) {}
+		UInt32 GetWidth() const { return m_width; }
+		UInt32 GetHeight() const { return m_height; }
+		float GetZoom() const { return m_zoom; };
+		glm::vec3 GetRotation() const { return m_rotation; }
 	};
 }

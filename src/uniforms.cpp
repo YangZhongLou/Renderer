@@ -12,16 +12,6 @@ namespace Concise
 {
 	Uniforms::Uniforms(Device * device, Renderer * renderer) : m_device(device), m_renderer(renderer)
 	{
-	}
-	
-	Uniforms::~Uniforms()
-	{
-		vkDestroyBuffer(m_device->GetLogicalDevice(), m_vsBuffer.buffer, nullptr);
-		vkFreeMemory(m_device->GetLogicalDevice(), m_vsBuffer.memory, nullptr);
-	}
-	
-	void Uniforms::Init()
-	{
 		VkBufferCreateInfo bufferInfo = VkFactory::BufferCreateInfo(sizeof(m_vsData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);;
 		VK_CHECK_RESULT(vkCreateBuffer(m_device->GetLogicalDevice(), &bufferInfo, nullptr, &m_vsBuffer.buffer));
 
@@ -36,6 +26,14 @@ namespace Concise
 		m_vsBuffer.descriptor.buffer = m_vsBuffer.buffer;
 		m_vsBuffer.descriptor.offset = 0;
 		m_vsBuffer.descriptor.range = sizeof(m_vsData);
+		
+		UpdateVS();
+	}
+	
+	Uniforms::~Uniforms()
+	{
+		vkDestroyBuffer(m_device->GetLogicalDevice(), m_vsBuffer.buffer, nullptr);
+		vkFreeMemory(m_device->GetLogicalDevice(), m_vsBuffer.memory, nullptr);
 	}
 	
 	void Uniforms::UpdateVS()

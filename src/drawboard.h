@@ -4,6 +4,8 @@
 
 #prgama once
 
+#include <string>
+
 namespace Concise
 {
 	/** abstraction of window */
@@ -18,5 +20,11 @@ namespace Concise
 	public:
 		Drawboard();
 		~Drawboard(); 
+	public:
+		HWND CreateWindow(HINSTANCE hinstance, WNDPROC wndproc, std::string name, std::string windowTitle);
+		
+		void WindowResize();
+		void WindowResized();
+		void ViewChanged();
 	};
 }

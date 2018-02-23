@@ -11,8 +11,9 @@ namespace Concise
 	class Application
 	{
 	private:
-		std::string name;
+		std::string m_name;
 	public:
-		
+		Application(std::string name);
+		~Application();
 	};
 }

@@ -14,6 +14,10 @@ namespace Concise
 	Renderer::Renderer()
 	{
 		m_swapchain = nullptr;
+		
+		
+		
+		m_uniforms = new Uniforms(m_device, this);
 	}
 	
 	Renderer::~Renderer()
@@ -63,8 +67,6 @@ namespace Concise
 	void Renderer::Init()
 	{
 		m_prepared = false;
-		InitConsole("Concise");
-		InitVulkan();
 		InitUniforms();
 		InitVeritces();
 		InitDepthStencil();
@@ -147,15 +149,6 @@ namespace Concise
 		}
 	}
 	
-	void Renderer::InitVulkan()
-	{
-		InitVulkanDebugger();
-		InitVulkanDevice();
-		InitSwapchain();
-		InitCommandBuffers();
-		InitVulkanSync();
-	}
-	
 	void Renderer::InitVulkanDebugger()
 	{
 		if (!m_settings.validation)
@@ -188,28 +181,12 @@ namespace Concise
 
 	void Renderer::InitUniforms()
 	{
-		m_uniforms = new Uniforms(m_device, this);
-		m_uniforms->Init();
-		m_uniforms->UpdateVS();
-	}
-
-	void Renderer::InitDescriptorPool()
-	{
-
-	}
-	
-	void Renderer::InitDescriptorSetLayout()
-	{
 
 	}
 	
 	void Renderer::InitDescriptorSet()
 	{
-		VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = VkFactory::DescriptorSetAllocateInfo(m_descriptorSetLayout, m_descriptorPool);
-		VK_CHECK_RESULT(vkAllocateDescriptorSets(m_device->GetLogicalDevice(), &descriptorSetAllocateInfo, &m_descriptorSet));
 
-		VkWriteDescriptorSet writeDescriptorSet = VkFactory::WriteDescriptorSet(m_descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_uniforms->GetDescriptorBufferInfo());
-		vkUpdateDescriptorSets(m_device->GetLogicalDevice(), 1, &writeDescriptorSet, 0, nullptr);
 	}
 	
 	void Renderer::InitDepthStencil()
@@ -279,177 +256,6 @@ namespace Concise
 	{
 
 	}
-	
-	void Renderer::InitConsole(std::string title)
-	{
-		AllocConsole();
-		AttachConsole(GetCurrentProcessId());
-		FILE *stream;
-		freopen_s(&stream, "CONOUT$", "w+", stdout);
-		freopen_s(&stream, "CONOUT$", "w+", stderr);
-
-		SetConsoleTitle(TEXT(title.c_str()));
-	}
-
-	HWND Renderer::BuildWindow(HINSTANCE hinstance, WNDPROC wndproc, std::string name, std::string windowTitle)
-	{
-		m_windowInstance = hinstance;
-
-		WNDCLASSEX wndClass;
-
-		wndClass.cbSize = sizeof(WNDCLASSEX);
-		wndClass.style = CS_HREDRAW | CS_VREDRAW;
-		wndClass.lpfnWndProc = wndproc;
-		wndClass.cbClsExtra = 0;
-		wndClass.cbWndExtra = 0;
-		wndClass.hInstance = hinstance;
-		wndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-		wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-		wndClass.lpszMenuName = NULL;
-		wndClass.lpszClassName = name.c_str();
-		wndClass.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
-
-		if (!RegisterClassEx(&wndClass))
-		{
-			std::cout << "Could not register window class!\n";
-			fflush(stdout);
-			exit(1);
-		}
-
-		int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-		int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-		if (m_settings.fullscreen)
-		{
-			DEVMODE dmScreenSettings;
-			memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
-			dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-			dmScreenSettings.dmPelsWidth = screenWidth;
-			dmScreenSettings.dmPelsHeight = screenHeight;
-			dmScreenSettings.dmBitsPerPel = 32;
-			dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-
-			if ((m_width != (UInt32)screenWidth) && (m_height != (UInt32)screenHeight))
-			{
-				if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
-				{
-					if (MessageBox(NULL, "Fullscreen Mode not supported!\n Switch to window mode?", "Error", MB_YESNO | MB_ICONEXCLAMATION) == IDYES)
-					{
-						m_settings.fullscreen = false;
-					}
-					else
-					{
-						return nullptr;
-					}
-				}
-			}
-
-		}
-
-		DWORD dwExStyle;
-		DWORD dwStyle;
-
-		if (m_settings.fullscreen)
-		{
-			dwExStyle = WS_EX_APPWINDOW;
-			dwStyle = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-		}
-		else
-		{
-			dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-			dwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-		}
-
-		RECT windowRect;
-		windowRect.left = 0L;
-		windowRect.top = 0L;
-		windowRect.right = m_settings.fullscreen ? (long)screenWidth : (long)m_width;
-		windowRect.bottom = m_settings.fullscreen ? (long)screenHeight : (long)m_height;
-
-		AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle);
-
-		m_window = CreateWindowEx(0,
-			name.c_str(),
-			windowTitle.c_str(),
-			dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-			0,
-			0,
-			windowRect.right - windowRect.left,
-			windowRect.bottom - windowRect.top,
-			NULL,
-			NULL,
-			hinstance,
-			NULL);
-
-		if (!m_settings.fullscreen)
-		{
-			// Center on screen
-			UInt32 x = (GetSystemMetrics(SM_CXSCREEN) - windowRect.right) / 2;
-			UInt32 y = (GetSystemMetrics(SM_CYSCREEN) - windowRect.bottom) / 2;
-			SetWindowPos(m_window, 0, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
-		}
-
-		if (!m_window)
-		{
-			printf("Could not create window!\n");
-			fflush(stdout);
-			return nullptr;
-			exit(1);
-		}
-
-		ShowWindow(m_window, SW_SHOW);
-		SetForegroundWindow(m_window);
-		SetFocus(m_window);
-
-		return m_window;
-	}
-
-	void Renderer::HandleMouseMove(Int32 x, Int32 y)
-	{
-		Int32 dx = (Int32)m_mousePos.x - x;
-		Int32 dy = (Int32)m_mousePos.y - y;
-
-		bool handled = false;
-
-		if (m_settings.overlay) 
-		{
-			/* TODO
-			ImGuiIO& io = ImGui::GetIO();
-			handled = io.WantCaptureMouse;
-			*/
-
-		}
-		MouseMoved((float)x, (float)y, handled);
-
-		if (handled) 
-		{
-			m_mousePos = glm::vec2((float)x, (float)y);
-			return;
-		}
-
-		if (m_mouseButtons.left) 
-		{
-			m_rotation.x += dy * 1.25f * m_rotationSpeed;
-			m_rotation.y -= dx * 1.25f * m_rotationSpeed;
-			m_camera.rotate(glm::vec3(dy * m_camera.rotationSpeed, -dx * m_camera.rotationSpeed, 0.0f));
-			m_viewUpdated = true;
-		}
-		if (m_mouseButtons.right) 
-		{
-			m_zoom += dy * .005f * m_zoomSpeed;
-			m_camera.translate(glm::vec3(-0.0f, 0.0f, dy * .005f * m_zoomSpeed));
-			m_viewUpdated = true;
-		}
-		if (m_mouseButtons.middle) 
-		{
-			m_cameraPos.x -= dx * 0.01f;
-			m_cameraPos.y -= dy * 0.01f;
-			m_camera.translate(glm::vec3(-dx * 0.01f, -dy * 0.01f, 0.0f));
-			m_viewUpdated = true;
-		}
-		m_mousePos = glm::vec2((float)x, (float)y);
-	}
 
 	void Renderer::WindowResize()
 	{
@@ -510,130 +316,6 @@ namespace Concise
 		m_uniforms->UpdateVS();
 	}
 
-	void Renderer::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-	{
-		switch (uMsg)
-		{
-		case WM_CLOSE:
-			m_prepared = false;
-			DestroyWindow(hWnd);
-			PostQuitMessage(0);
-			break;
-		case WM_PAINT:
-			ValidateRect(m_window, NULL);
-			break;
-		case WM_KEYDOWN:
-			switch (wParam)
-			{
-			case KEY_P:
-				m_paused = !m_paused;
-				break;
-			case KEY_F1:
-				if (m_settings.overlay) 
-				{
-					/** TODO */
-				}
-				break;
-			case KEY_ESCAPE:
-				PostQuitMessage(0);
-				break;
-			}
-
-			if (m_camera.firstperson)
-			{
-				switch (wParam)
-				{
-				case KEY_W:
-					m_camera.keys.up = true;
-					break;
-				case KEY_S:
-					m_camera.keys.down = true;
-					break;
-				case KEY_A:
-					m_camera.keys.left = true;
-					break;
-				case KEY_D:
-					m_camera.keys.right = true;
-					break;
-				}
-			}
-
-			KeyPressed((UInt32)wParam);
-			break;
-		case WM_KEYUP:
-			if (m_camera.firstperson)
-			{
-				switch (wParam)
-				{
-				case KEY_W:
-					m_camera.keys.up = false;
-					break;
-				case KEY_S:
-					m_camera.keys.down = false;
-					break;
-				case KEY_A:
-					m_camera.keys.left = false;
-					break;
-				case KEY_D:
-					m_camera.keys.right = false;
-					break;
-				}
-			}
-			break;
-		case WM_LBUTTONDOWN:
-			m_mousePos = glm::vec2((float)LOWORD(lParam), (float)HIWORD(lParam));
-			m_mouseButtons.left = true;
-			break;
-		case WM_RBUTTONDOWN:
-			m_mousePos = glm::vec2((float)LOWORD(lParam), (float)HIWORD(lParam));
-			m_mouseButtons.right = true;
-			break;
-		case WM_MBUTTONDOWN:
-			m_mousePos = glm::vec2((float)LOWORD(lParam), (float)HIWORD(lParam));
-			m_mouseButtons.middle = true;
-			break;
-		case WM_LBUTTONUP:
-			m_mouseButtons.left = false;
-			break;
-		case WM_RBUTTONUP:
-			m_mouseButtons.right = false;
-			break;
-		case WM_MBUTTONUP:
-			m_mouseButtons.middle = false;
-			break;
-		case WM_MOUSEWHEEL:
-		{
-			short wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-			m_zoom += (float)wheelDelta * 0.005f * m_zoomSpeed;
-			m_camera.translate(glm::vec3(0.0f, 0.0f, (float)wheelDelta * 0.005f * m_zoomSpeed));
-			m_viewUpdated = true;
-			break;
-		}
-		case WM_MOUSEMOVE:
-		{
-			HandleMouseMove(LOWORD(lParam), HIWORD(lParam));
-			break;
-		}
-		case WM_SIZE:
-			if ((m_prepared) && (wParam != SIZE_MINIMIZED))
-			{
-				if ((m_resizing) || ((wParam == SIZE_MAXIMIZED) || (wParam == SIZE_RESTORED)))
-				{
-					m_destWidth = LOWORD(lParam);
-					m_destHeight = HIWORD(lParam);
-					WindowResize();
-				}
-			}
-			break;
-		case WM_ENTERSIZEMOVE:
-			m_resizing = true;
-			break;
-		case WM_EXITSIZEMOVE:
-			m_resizing = false;
-			break;
-		}
-	}
-	
 	void Renderer::Loop()
 	{
 		MSG msg;

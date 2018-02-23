@@ -4,20 +4,26 @@
 
 #pragma once
 
-#include <vector>
+#include <map>
+#include <string>
 #include <vulkan/vulkan.h>
 
 namespace Concise
 {
 	class Device;
-	class Pipeline;
+	
+	struct Pipeline
+	{
+		VkPipelineLayout m_pipelineLayout;
+		VkPipeline m_pipeline;
+	};
 	
 	class Pipelines
 	{
 	private:
 		Device * m_device;
 		VkPipelineCache m_pipelineCache;
-		std::vector<Pipeline*> m_pipelines;
+		std::map<std::string, Pipeline&> m_pipelines;
 	public:
 		Pipelines(Device * device);
 		~Pipelines();
