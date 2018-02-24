@@ -12,7 +12,7 @@ namespace Concise
 {
 	class Vertices;
 	class Uniforms;
-	class Debugger;
+	class Swapchain;
 
 	struct Vertex;
 	
@@ -21,16 +21,11 @@ namespace Concise
 	private:
 		UInt32 m_currentBuffer = 0;
 		std::vector<VkCommandBuffer> m_drawCmdBuffers;
-		
-		Debugger * m_debugger;
-		
+				
 		Vertices * m_vertices;
 		Uniforms * m_uniforms;
-		
-		VkRenderPass m_renderPass;
-		std::vector<VkFramebuffer> m_framebuffers;
-		std::vector<VkViewport> m_viewports;
-		
+		Swapchain * m_swapchain;
+				
 		Camera m_camera;
 	public:
 		Renderer();
@@ -42,9 +37,6 @@ namespace Concise
 		void WindowResized();
 		void ViewChanged();
 
-		void DestroyCommandBuffers();
-		void CreateCommandBuffers();
-		void BuildCommandBuffers();
 		void Loop();
 		void RenderFrame();
 		

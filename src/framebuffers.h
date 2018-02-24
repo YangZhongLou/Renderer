@@ -10,12 +10,15 @@
 
 namespace Concise
 {
+	class Swapchain;
+
 	class Framebuffers
 	{
 	private:
-		std::vector<VkFramebuffer> m_frameBuffers;
+		std::vector<VkFramebuffer> m_framebuffers;
 	public:
-		Framebuffers(UInt32 size);
+		Framebuffers(Swapchain * swapchain, VkRenderPass renderpass, 
+			UInt32 width, UInt32 height);
 		~Framebuffers();
 	};
 }

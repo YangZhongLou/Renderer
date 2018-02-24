@@ -10,6 +10,13 @@
 namespace Concise
 {
 	struct Buffer;
+	struct DepthStencil
+	{
+		VkImage image;
+		VkDeviceMemory mem;
+		VkImageView view;
+	};
+
 	class VulkanInstance;
 	
 	class Device
@@ -43,12 +50,7 @@ namespace Concise
 		
 		std::vector<VkFence> m_fences;
 
-		struct
-		{
-			VkImage image;
-			VkDeviceMemory mem;
-			VkImageView view;
-		} m_depthStencil;
+		DepthStencil m_depthStencil;
 		
 		VulkanInstance * m_vkInstance;
 	public:
@@ -57,6 +59,7 @@ namespace Concise
 		Device();
 		~Device();
 	public:
+		DepthStencil & GetDepthStencil() { return m_depthStencil; }
 		VulkanInstance * GetVulkanInstance() const { return m_vkInstance; }
 		VkDevice GetLogicalDevice() const { return m_logicalDevice; }
 		VkPhysicalDevice GetPhysicalDevice() const { return m_physicalDevice; }

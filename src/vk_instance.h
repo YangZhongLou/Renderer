@@ -8,10 +8,13 @@
 
 namespace Concise
 {
+	class Debugger;
+
 	class VulkanInstance
 	{
 	private:
 		VkInstance m_instance;
+		Debugger * m_debugger;
 
 	public:
 		VulkanInstance();

@@ -38,6 +38,8 @@ namespace Concise
 	#if _DEBUG
 		instanceCreateInfo.enabledLayerCount = Debugger::validationLayerCount;
 		instanceCreateInfo.ppEnabledLayerNames = Debugger::validationLayerNames;
+
+		m_debugger = new Debugger(VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT);
 	#endif
 		VK_CHECK_RESULT(vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance));
 	}
@@ -45,5 +47,6 @@ namespace Concise
 	VulkanInstance::~VulkanInstance()
 	{
 		vkDestroyInstance(m_instance, nullptr);
+		SAFE_DELETE(m_debugger);
 	}
 }

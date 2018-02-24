@@ -16,26 +16,15 @@ namespace Concise
 	{
 		m_swapchain = nullptr;
 		
-		m_vertices = new Vertices(m_device);
-		m_uniforms = new Uniforms(m_device, this);
+		m_vertices = new Vertices();
+		m_uniforms = new Uniforms();
 	}
 	
 	Renderer::~Renderer()
 	{
-		DestroyCommandBuffers();
-
-		vkDestroyRenderPass(m_device->GetLogicalDevice(), m_renderPass, nullptr);
-
-		for (UInt32 i = 0; i < m_framebuffers.size(); i++)
-		{
-			vkDestroyFramebuffer(m_device->GetLogicalDevice(), m_framebuffers[i], nullptr);
-		}
-
 		SAFE_DELETE(m_uniforms);
 		SAFE_DELETE(m_vertices);
 		SAFE_DELETE(m_swapchain);
-		SAFE_DELETE(m_debugger);
-		SAFE_DELETE(m_device);
 	}
 	
 	void Renderer::DestroyCommandBuffers()
@@ -45,11 +34,7 @@ namespace Concise
 
 	void Renderer::CreateCommandBuffers()
 	{
-		m_drawCmdBuffers.resize(m_swapchain->GetImageCount());
 
-		VkCommandBufferAllocateInfo cmdBufAllocateInfo = VkFactory::CommandBufferAllocateInfo(m_device->GetCommandPool(), VK_COMMAND_BUFFER_LEVEL_PRIMARY, static_cast<UInt32>(m_drawCmdBuffers.size()));
-
-		VK_CHECK_RESULT(vkAllocateCommandBuffers(m_device->GetLogicalDevice(), &cmdBufAllocateInfo, m_drawCmdBuffers.data()));
 	}
 
 	void Renderer::BuildCommandBuffers()
@@ -100,97 +85,6 @@ namespace Concise
 
 			VK_CHECK_RESULT(vkEndCommandBuffer(m_drawCmdBuffers[i]));
 		}
-	}
-	
-	void Renderer::InitVulkanDebugger()
-	{
-		if (!m_settings.validation)
-		{
-			return;
-		}
-
-		VkDebugReportFlagsEXT debugReportFlags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-		m_debugger = new Debugger(m_vkInstance, debugReportFlags);
-		m_debugger->Init();
-	}
-
-	void Renderer::InitVulkanDevice()
-	{
-		m_device = new Device(m_vkInstance);
-		m_device->Init();
-	}
-	
-	void Renderer::InitSwapchain()
-	{
-		m_swapchain = new Swapchain(m_vkInstance, m_device, this);
-		m_swapchain->Init();
-		m_swapchain->CreateSwapchain(&m_width, &m_height, m_settings.vsync);
-	}
-
-	void Renderer::InitCommandBuffers()
-	{
-		CreateCommandBuffers();
-	}
-
-	void Renderer::InitUniforms()
-	{
-
-	}
-	
-	void Renderer::InitDescriptorSet()
-	{
-
-	}
-	
-	void Renderer::InitFramebuffers()
-	{
-		m_framebuffers.resize(m_swapchain->GetImageCount());
-		for (UInt32 i = 0; i < static_cast<UInt32>(m_framebuffers.size()); i++)
-		{
-			std::vector<VkImageView> attachments(2);										
-			attachments[0] = m_swapchain->GetBuffer(i).view;
-			attachments[1] = m_depthStencil.view;									
-
-			VkFramebufferCreateInfo frameBufferCreateInfo = VkFactory::FramebufferCreateInfo(m_renderPass, attachments, m_width, m_height);
-			VK_CHECK_RESULT(vkCreateFramebuffer(m_device->GetLogicalDevice(), &frameBufferCreateInfo, nullptr, &m_framebuffers[i]));
-		}
-	}
-	
-	void Renderer::InitRenderPass()
-	{
-		std::vector<VkAttachmentDescription> attachments;
-		// Color attachment
-		attachments.push_back(VkFactory::AttachmentDescription(m_swapchain->GetColorFormat()));
-		attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;							
-		attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;					
-																						
-		// Depth attachment
-		attachments.push_back(VkFactory::AttachmentDescription(m_device->GetSupportedDepthFormat()));
-		attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;	
-
-		// Setup attachment references
-		VkAttachmentReference colorReference = VkFactory::AttachmentReference(0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);			
-		VkAttachmentReference depthReference = VkFactory::AttachmentReference(1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);	
-
-		VkSubpassDescription subpassDescription = VkFactory::SubpassDescription(VK_PIPELINE_BIND_POINT_GRAPHICS);
-		subpassDescription.pColorAttachments = &colorReference;							
-		subpassDescription.pDepthStencilAttachment = &depthReference;					
-		
-		std::vector<VkSubpassDependency> dependencies;
-		VkFactory::SubpassDependencies(dependencies);
-
-		VkRenderPassCreateInfo renderPassInfo = VkFactory::RenderPassCreateInfo(attachments, dependencies, &subpassDescription);
-		VK_CHECK_RESULT(vkCreateRenderPass(m_device->GetLogicalDevice(), &renderPassInfo, nullptr, &m_renderPass));
-	}
-	
-	void Renderer::InitPipelineCache()
-	{
-
-	}
-	
-	void Renderer::InitPipelines()
-	{
-
 	}
 
 	void Renderer::WindowResize()

@@ -1,10 +1,12 @@
-#include "debugger.h"
-#include "utils.h"
-#include "vk_factory.hpp"
 #include <string>
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include "debugger.h"
+#include "utils.h"
+#include "vk_factory.hpp"
+#include "device.h"
+#include "vk_instance.h"
 
 namespace Concise
 {
@@ -14,15 +16,30 @@ namespace Concise
 		"VK_LAYER_LUNARG_standard_validation",
 	};
 
-	Debugger::Debugger(VkInstance instance, VkDebugReportFlagsEXT flags) : m_vkInstance(instance), m_flags(flags)
+	Debugger::Debugger(VkDebugReportFlagsEXT flags) : m_flags(flags)
 	{
+		CreateDebugReportCallback = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(
+			vkGetInstanceProcAddr(Device::Instance().GetVulkanInstance()->Get(), "vkCreateDebugReportCallbackEXT"));
+		DestroyDebugReportCallback = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(
+			vkGetInstanceProcAddr(Device::Instance().GetVulkanInstance()->Get(), "vkDestroyDebugReportCallbackEXT"));
+		DebugReportMessage = reinterpret_cast<PFN_vkDebugReportMessageEXT>(
+			vkGetInstanceProcAddr(Device::Instance().GetVulkanInstance()->Get(), "vkDebugReportMessageEXT"));
+
+		VkDebugReportCallbackCreateInfoEXT dbgCreateInfo = 
+			VkFactory::DebugReportCallbackCreateInfo(DebugReportCallback, m_flags);
+		VK_CHECK_RESULT(CreateDebugReportCallback(
+			Device::Instance().GetVulkanInstance()->Get(),
+			&dbgCreateInfo,
+			nullptr,
+			&m_callback));
 	}
 
 	Debugger::~Debugger()
 	{
 		if (m_callback != VK_NULL_HANDLE)
 		{
-			DestroyDebugReportCallback(m_vkInstance, m_callback, nullptr);
+			DestroyDebugReportCallback(Device::Instance().GetVulkanInstance()->Get(), 
+				m_callback, nullptr);
 		}
 	}
 
@@ -98,19 +115,5 @@ namespace Concise
 		fflush(stdout);
 
 		return VK_FALSE;
-	}
-
-	void Debugger::Init()
-	{
-		CreateDebugReportCallback = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(m_vkInstance, "vkCreateDebugReportCallbackEXT"));
-		DestroyDebugReportCallback = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(m_vkInstance, "vkDestroyDebugReportCallbackEXT"));
-		DebugReportMessage = reinterpret_cast<PFN_vkDebugReportMessageEXT>(vkGetInstanceProcAddr(m_vkInstance, "vkDebugReportMessageEXT"));
-
-		VkDebugReportCallbackCreateInfoEXT dbgCreateInfo = VkFactory::DebugReportCallbackCreateInfo(DebugReportCallback, m_flags);
-		VK_CHECK_RESULT(CreateDebugReportCallback(
-			m_vkInstance,
-			&dbgCreateInfo,
-			nullptr,
-			&m_callback));
 	}
 }
