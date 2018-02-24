@@ -3,6 +3,9 @@
 */
 #pragma once
 
+#include <assert.h>
+#include <iostream>
+
 #define DEFAULT_FENCE_TIMEOUT 100000000000
 
 #define VK_CHECK_RESULT(func)																							\

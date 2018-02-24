@@ -25,7 +25,7 @@ namespace Concise
 		VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 		std::map<std::string, Descriptor&> m_descriptors;
 	public:
-		Descriptors();
+		Descriptors(Device * device);
 		~Descriptors();
 	public:
 	};

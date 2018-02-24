@@ -49,7 +49,7 @@ namespace Concise
 
 		CreateLogicalDevice(m_enabledFeatures, m_enabledExtensions);
 
-		vkGetDeviceQueue(m_m_logicalDevice, m_queueFamilyIndices.graphics, 0, &m_queue);
+		vkGetDeviceQueue(m_logicalDevice, m_queueFamilyIndices.graphics, 0, &m_queue);
 
 		/** find supported depth format */
 		std::vector<VkFormat> depthFormats = {
@@ -76,12 +76,12 @@ namespace Concise
 	{
 		if (m_cmdPool)
 		{
-			vkDestroyCommandPool(m_m_logicalDevice, m_cmdPool, nullptr);
+			vkDestroyCommandPool(m_logicalDevice, m_cmdPool, nullptr);
 		}
 		
-		if (m_m_logicalDevice)
+		if (m_logicalDevice)
 		{
-			vkDestroyDevice(m_m_logicalDevice, nullptr);
+			vkDestroyDevice(m_logicalDevice, nullptr);
 		}
 	}
 
@@ -191,7 +191,7 @@ namespace Concise
 			deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 		}
 
-		VkResult result = vkCreateDevice(m_physicalDevice, &deviceCreateInfo, nullptr, &m_m_logicalDevice);
+		VkResult result = vkCreateDevice(m_physicalDevice, &deviceCreateInfo, nullptr, &m_logicalDevice);
 
 		if (result == VK_SUCCESS)
 		{
@@ -202,7 +202,7 @@ namespace Concise
 	void Device::CreateCommandPool(UInt32 queueFamilyIndex, VkCommandPoolCreateFlags createFlags)
 	{
 		VkCommandPoolCreateInfo cmdPoolInfo = VkFactory::CommandPoolCreateInfo(queueFamilyIndex, createFlags);
-		VK_CHECK_RESULT(vkCreateCommandPool(m_m_logicalDevice, &cmdPoolInfo, nullptr, &m_cmdPool));
+		VK_CHECK_RESULT(vkCreateCommandPool(m_logicalDevice, &cmdPoolInfo, nullptr, &m_cmdPool));
 	}
 	
 	bool Device::ExtensionSupported(std::string extension)
@@ -250,13 +250,13 @@ namespace Concise
 			
 			if ((memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
 			{
-				VkMappedMemoryRange mappedRange = vks::initializers::mappedMemoryRange();
-				mappedRange.memory = *memory;
+				VkMappedMemoryRange mappedRange = VkFactory::MappedMemoryRange();
+				mappedRange.memory = buffer.memory;
 				mappedRange.offset = 0;
 				mappedRange.size = size;
 				vkFlushMappedMemoryRanges(m_logicalDevice, 1, &mappedRange);
 			}
-			vkUnmapMemory(m_logicalDevice, *memory);
+			vkUnmapMemory(m_logicalDevice, buffer.memory);
 		}
 
 		// Attach the memory to the buffer object
@@ -270,7 +270,7 @@ namespace Concise
 		VkCommandBuffer cmdBuffer;
 
 		VkCommandBufferAllocateInfo cmdBufAllocateInfo = VkFactory::CommandBufferAllocateInfo(m_cmdPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-		VK_CHECK_RESULT(vkAllocateCommandBuffers(m_m_logicalDevice, &cmdBufAllocateInfo, &cmdBuffer));
+		VK_CHECK_RESULT(vkAllocateCommandBuffers(m_logicalDevice, &cmdBufAllocateInfo, &cmdBuffer));
 
 		if (beginRecord)
 		{
@@ -293,18 +293,35 @@ namespace Concise
 
 		VkFenceCreateInfo fenceCreateInfo = VkFactory::FenceCreateInfo();
 		VkFence fence;
-		VK_CHECK_RESULT(vkCreateFence(m_m_logicalDevice, &fenceCreateInfo, nullptr, &fence));
+		VK_CHECK_RESULT(vkCreateFence(m_logicalDevice, &fenceCreateInfo, nullptr, &fence));
 
 		VK_CHECK_RESULT(vkQueueSubmit(m_queue, 1, &submitInfo, fence));
-		VK_CHECK_RESULT(vkWaitForFences(m_m_logicalDevice, 1, &fence, VK_TRUE, DEFAULT_FENCE_TIMEOUT));
+		VK_CHECK_RESULT(vkWaitForFences(m_logicalDevice, 1, &fence, VK_TRUE, DEFAULT_FENCE_TIMEOUT));
 
 		/**TODO, RAII */
-		vkDestroyFence(m_m_logicalDevice, fence, nullptr);
-		vkFreeCommandBuffers(m_m_logicalDevice, m_cmdPool, 1, &commandBuffer);
+		vkDestroyFence(m_logicalDevice, fence, nullptr);
+		vkFreeCommandBuffers(m_logicalDevice, m_cmdPool, 1, &commandBuffer);
 	}
 	
 	void Device::EnableFeatures()
 	{
 		
+	}
+
+	void Device::InitDepthStencil(UInt32 width, UInt32 height)
+	{
+		VkImageCreateInfo image = VkFactory::ImageCreateInfo(GetSupportedDepthFormat(), { width, height, 1 });
+		VK_CHECK_RESULT(vkCreateImage(m_logicalDevice, &image, nullptr, &m_depthStencil.image));
+
+		VkMemoryRequirements memReqs;
+		vkGetImageMemoryRequirements(m_logicalDevice, m_depthStencil.image, &memReqs);
+		VkMemoryAllocateInfo memAlloc = VkFactory::MemoryAllocateInfo(memReqs.size, GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT));
+
+		VK_CHECK_RESULT(vkAllocateMemory(m_logicalDevice, &memAlloc, nullptr, &m_depthStencil.mem));
+		VK_CHECK_RESULT(vkBindImageMemory(m_logicalDevice, m_depthStencil.image, m_depthStencil.mem, 0));
+
+		VkImageSubresourceRange imageSubresourceRange = VkFactory::ImageSubresourceRange(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+		VkImageViewCreateInfo imageViewCreateInfo = VkFactory::ImageViewCreateInfo(GetSupportedDepthFormat(), m_depthStencil.image, imageSubresourceRange);
+		VK_CHECK_RESULT(vkCreateImageView(m_logicalDevice, &imageViewCreateInfo, nullptr, &m_depthStencil.view));
 	}
 }

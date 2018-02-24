@@ -8,6 +8,7 @@
 #include "debugger.h"
 #include "shader.h"
 #include "keycodes.hpp"
+#include "vk_instance.h"
 
 namespace Concise
 {
@@ -15,8 +16,9 @@ namespace Concise
 	{
 		m_swapchain = nullptr;
 		
-		
-		
+		m_vkInstance = new VulkanInstance();
+		m_device = new Device(m_vkInstance->Get());
+		m_vertices = new Vertices(m_device);
 		m_uniforms = new Uniforms(m_device, this);
 	}
 	
@@ -64,25 +66,9 @@ namespace Concise
 		vkDestroyInstance(m_vkInstance, nullptr);
 	}
 	
-	void Renderer::Init()
-	{
-		m_prepared = false;
-		InitUniforms();
-		InitVeritces();
-		InitDepthStencil();
-		InitRenderPass();
-		InitDescriptorSetLayout();
-		InitDescriptorPool();
-		InitDescriptorSet();
-		InitPipelineCache();
-		InitFramebuffers();
-		InitPipelines();
-		m_prepared = true;
-	}
-	
 	void Renderer::InitVeritces()
 	{
-		m_vertices = new Vertices(m_device);
+		
 	}
 	
 	void Renderer::DestroyCommandBuffers()
@@ -187,23 +173,6 @@ namespace Concise
 	void Renderer::InitDescriptorSet()
 	{
 
-	}
-	
-	void Renderer::InitDepthStencil()
-	{
-		VkImageCreateInfo image = VkFactory::ImageCreateInfo(m_device->GetSupportedDepthFormat(), {m_width, m_height, 1});
-		VK_CHECK_RESULT(vkCreateImage(m_device->GetLogicalDevice(), &image, nullptr, &m_depthStencil.image));
-
-		VkMemoryRequirements memReqs;
-		vkGetImageMemoryRequirements(m_device->GetLogicalDevice(), m_depthStencil.image, &memReqs);
-		VkMemoryAllocateInfo memAlloc = VkFactory::MemoryAllocateInfo(memReqs.size, m_device->GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT));
-
-		VK_CHECK_RESULT(vkAllocateMemory(m_device->GetLogicalDevice(), &memAlloc, nullptr, &m_depthStencil.mem));
-		VK_CHECK_RESULT(vkBindImageMemory(m_device->GetLogicalDevice(), m_depthStencil.image, m_depthStencil.mem, 0));
-
-		VkImageSubresourceRange imageSubresourceRange = VkFactory::ImageSubresourceRange(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
-		VkImageViewCreateInfo imageViewCreateInfo = VkFactory::ImageViewCreateInfo(m_device->GetSupportedDepthFormat(), m_depthStencil.image, imageSubresourceRange);
-		VK_CHECK_RESULT(vkCreateImageView(m_device->GetLogicalDevice(), &imageViewCreateInfo, nullptr, &m_depthStencil.view));
 	}
 	
 	void Renderer::InitFramebuffers()

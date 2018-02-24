@@ -1,4 +1,7 @@
+#include <iostream>
 #include "drawboard.h"
+#include "global.h"
+
 
 namespace Concise
 {
@@ -9,9 +12,9 @@ namespace Concise
 	{
 	}
 	
-	HWND Drawboard::CreateWindow(HINSTANCE hinstance, WNDPROC wndproc, std::string name, std::string windowTitle)
+	HWND Drawboard::Create(HINSTANCE hinstance, WNDPROC wndproc, std::string name, std::string windowTitle)
 	{
-				m_windowInstance = hinstance;
+		m_windowInstance = hinstance;
 
 		WNDCLASSEX wndClass;
 
@@ -38,7 +41,7 @@ namespace Concise
 		int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 		int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-		if (m_settings.fullscreen)
+		if (g_settings.fullscreen)
 		{
 			DEVMODE dmScreenSettings;
 			memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
@@ -54,7 +57,7 @@ namespace Concise
 				{
 					if (MessageBox(NULL, "Fullscreen Mode not supported!\n Switch to window mode?", "Error", MB_YESNO | MB_ICONEXCLAMATION) == IDYES)
 					{
-						m_settings.fullscreen = false;
+						g_settings.fullscreen = false;
 					}
 					else
 					{
@@ -68,7 +71,7 @@ namespace Concise
 		DWORD dwExStyle;
 		DWORD dwStyle;
 
-		if (m_settings.fullscreen)
+		if (g_settings.fullscreen)
 		{
 			dwExStyle = WS_EX_APPWINDOW;
 			dwStyle = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
@@ -82,8 +85,8 @@ namespace Concise
 		RECT windowRect;
 		windowRect.left = 0L;
 		windowRect.top = 0L;
-		windowRect.right = m_settings.fullscreen ? (long)screenWidth : (long)m_width;
-		windowRect.bottom = m_settings.fullscreen ? (long)screenHeight : (long)m_height;
+		windowRect.right = g_settings.fullscreen ? (long)screenWidth : (long)m_width;
+		windowRect.bottom = g_settings.fullscreen ? (long)screenHeight : (long)m_height;
 
 		AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle);
 
@@ -100,7 +103,7 @@ namespace Concise
 			hinstance,
 			NULL);
 
-		if (!m_settings.fullscreen)
+		if (!g_settings.fullscreen)
 		{
 			// Center on screen
 			UInt32 x = (GetSystemMetrics(SM_CXSCREEN) - windowRect.right) / 2;
@@ -123,56 +126,4 @@ namespace Concise
 		return m_window;
 	}
 	
-	void Renderer::WindowResize()
-	{
-		if (!m_prepared)
-		{
-			return;
-		}
-		m_prepared = false;
-
-		vkDeviceWaitIdle(m_device->GetLogicalDevice());
-
-		m_width = m_destWidth;
-		m_height = m_destHeight;
-
-		m_swapchain->CreateSwapchain(&m_width, &m_height, m_settings.vsync);
-
-		vkDestroyImageView(m_device->GetLogicalDevice(), m_depthStencil.view, nullptr);
-		vkDestroyImage(m_device->GetLogicalDevice(), m_depthStencil.image, nullptr);
-		vkFreeMemory(m_device->GetLogicalDevice(), m_depthStencil.mem, nullptr);
-
-		InitDepthStencil();
-		for (UInt32 i = 0; i < m_framebuffers.size(); ++i) 
-		{
-			vkDestroyFramebuffer(m_device->GetLogicalDevice(), m_framebuffers[i], nullptr);
-		}
-		InitFramebuffers();
-
-		// Command buffers need to be recreated as they may store
-		// references to the recreated frame buffer
-		DestroyCommandBuffers();
-		CreateCommandBuffers();
-		BuildCommandBuffers();
-
-		vkDeviceWaitIdle(m_device->GetLogicalDevice());
-
-		m_camera.updateAspectRatio((float)m_width / (float)m_height);
-
-		WindowResized();
-		ViewChanged();
-
-		m_prepared = true;
-	}
-
-	void Renderer::WindowResized()
-	{
-		m_uniforms->UpdateVS();
-	}
-
-	void Renderer::ViewChanged()
-	{
-		m_uniforms->UpdateVS();
-	}
-
 }

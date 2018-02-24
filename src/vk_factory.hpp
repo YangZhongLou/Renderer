@@ -18,6 +18,13 @@ namespace Concise
 
 	namespace VkFactory
 	{	
+		inline VkMappedMemoryRange MappedMemoryRange()
+		{
+			VkMappedMemoryRange mappedMemoryRange{};
+			mappedMemoryRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+			return mappedMemoryRange;
+		}
+
 		inline VkPresentInfoKHR PresentInfoKHR(VkSwapchainKHR & swapchain, UInt32 & imageIndex)
 		{
 			VkPresentInfoKHR presentInfo {};

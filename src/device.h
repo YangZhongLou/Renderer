@@ -41,13 +41,20 @@ namespace Concise
 		VkFormat m_depthFormat;
 		
 		std::vector<VkFence> m_fences;
+
+		struct
+		{
+			VkImage image;
+			VkDeviceMemory mem;
+			VkImageView view;
+		} m_depthStencil;
 		
+		/** VkInstance reference */
 		VkInstance m_vkInstance;
 	public:
 		Device(VkInstance instance);
 		~Device();
 	public:
-		void Init();
 		VkDevice GetLogicalDevice() const { return m_logicalDevice; }
 		VkPhysicalDevice GetPhysicalDevice() const { return m_physicalDevice; }
 		UInt32 GetMemoryTypeIndex(UInt32 typeBits, VkMemoryPropertyFlags properties);
@@ -71,6 +78,6 @@ namespace Concise
 			bool useSwapChain = true, 
 			VkQueueFlags requestedQueueTypes = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT);
 	private:
-		void InitSupportedDepthFormat();
+		void InitDepthStencil(UInt32 width, UInt32 height);
 	};
 }

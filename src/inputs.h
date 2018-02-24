@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <windows.h>
+#include <glm/glm.hpp>
+#include "types.h"
+
 namespace Concise
 {
 	class Inputs
@@ -25,7 +29,7 @@ namespace Concise
 		glm::vec3 m_rotation = glm::vec3();
 		glm::vec3 m_cameraPos = glm::vec3();
 		glm::vec2 m_mousePos;
-		
+
 		UInt32 m_destWidth;
 		UInt32 m_destHeight;
 		bool m_resizing;
@@ -37,8 +41,6 @@ namespace Concise
 		void KeyPressed(UInt32) {}
 		void HandleMouseMove(Int32 x, Int32 y);
 		void MouseMoved(double x, double y, bool handled) {}
-		UInt32 GetWidth() const { return m_width; }
-		UInt32 GetHeight() const { return m_height; }
 		float GetZoom() const { return m_zoom; };
 		glm::vec3 GetRotation() const { return m_rotation; }
 	};

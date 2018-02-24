@@ -1,6 +1,9 @@
 #include "vk_instance.h"
+#include "vk_factory.hpp"
+#include "defines.h"
+#include "debugger.h"
 
-namespace Conicse
+namespace Concise
 {
 	VulkanInstance::VulkanInstance()
 	{
@@ -41,6 +44,6 @@ namespace Conicse
 	
 	VulkanInstance::~VulkanInstance()
 	{
-		
+		//TODO
 	}
 }
