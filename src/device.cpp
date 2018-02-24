@@ -7,18 +7,27 @@
 #include "utils.h"
 #include "vk_factory.hpp"
 #include "buffer.hpp"
+#include "vk_instance.h"
 
 
 namespace Concise
 {
-	Device::Device(VkInstance instance) : m_vkInstance(instance)
+	Device & Device::Instance()
 	{
+		static Device instance;
+		return instance;
+	}
+
+	Device::Device()
+	{
+		m_vkInstance = new VulkanInstance();
+
 		UInt32 gpuCount = 0;
-		VK_CHECK_RESULT(vkEnumeratePhysicalDevices(m_vkInstance, &gpuCount, nullptr));
+		VK_CHECK_RESULT(vkEnumeratePhysicalDevices(m_vkInstance->Get(), &gpuCount, nullptr));
 		assert(gpuCount > 0);
 		
 		std::vector<VkPhysicalDevice> physicalDevices(gpuCount);
-		VK_CHECK_RESULT(vkEnumeratePhysicalDevices(m_vkInstance, &gpuCount, physicalDevices.data()));
+		VK_CHECK_RESULT(vkEnumeratePhysicalDevices(m_vkInstance->Get(), &gpuCount, physicalDevices.data()));
 
 		UInt32 selectedDevice = 0;
 		m_physicalDevice = physicalDevices[selectedDevice];

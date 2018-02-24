@@ -1,9 +1,9 @@
+#pragma once
 
 namespace Concise
 {	
 	struct Buffer
 	{
-		VkDevice device;
 		VkBuffer buffer = VK_NULL_HANDLE;
 		VkDeviceMemory memory = VK_NULL_HANDLE;
 		VkDescriptorBufferInfo descriptor;
@@ -25,21 +25,21 @@ namespace Concise
 
 		VkResult Map(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0)
 		{
-			return vkMapMemory(device, memory, offset, size, 0, &mapped);
+			return vkMapMemory(Device::Instance().GetLogicalDevice(), memory, offset, size, 0, &mapped);
 		}
 
 		void Unmap()
 		{
 			if (mapped)
 			{
-				vkUnmapMemory(device, memory);
+				vkUnmapMemory(Device::Instance().GetLogicalDevice(), memory);
 				mapped = nullptr;
 			}
 		}
 
 		VkResult Bind(VkDeviceSize offset = 0)
 		{
-			return vkBindBufferMemory(device, buffer, memory, offset);
+			return vkBindBufferMemory(Device::Instance().GetLogicalDevice(), buffer, memory, offset);
 		}
 
 		void SetupDescriptor(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0)
@@ -62,7 +62,7 @@ namespace Concise
 			mappedRange.memory = memory;
 			mappedRange.offset = offset;
 			mappedRange.size = size;
-			return vkFlushMappedMemoryRanges(device, 1, &mappedRange);
+			return vkFlushMappedMemoryRanges(Device::Instance().GetLogicalDevice(), 1, &mappedRange);
 		}
 
 		VkResult Invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0)
@@ -72,18 +72,18 @@ namespace Concise
 			mappedRange.memory = memory;
 			mappedRange.offset = offset;
 			mappedRange.size = size;
-			return vkInvalidateMappedMemoryRanges(device, 1, &mappedRange);
+			return vkInvalidateMappedMemoryRanges(Device::Instance().GetLogicalDevice(), 1, &mappedRange);
 		}
 
 		void Destroy()
 		{
 			if (buffer)
 			{
-				vkDestroyBuffer(device, buffer, nullptr);
+				vkDestroyBuffer(Device::Instance().GetLogicalDevice(), buffer, nullptr);
 			}
 			if (memory)
 			{
-				vkFreeMemory(device, memory, nullptr);
+				vkFreeMemory(Device::Instance().GetLogicalDevice(), memory, nullptr);
 			}
 		}
 	};

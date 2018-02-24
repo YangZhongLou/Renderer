@@ -3,14 +3,12 @@
 */
 #pragma once
 
-#include "types.h"
 #include <vector>
 #include <vulkan/vulkan.h>
+#include "types.h"
 
 namespace Concise
-{
-	class Device;
-	
+{	
 	enum VertexLayoutComponent 
 	{
 		VERTEX_COMPONENT_POSITION = 0x0,
@@ -55,7 +53,7 @@ namespace Concise
 			}
 			return sum;
 		}
-	}
+	};
 	
 	/** TODO */
 	struct Vertex
@@ -82,9 +80,8 @@ namespace Concise
 		UInt32 m_indexDataOffset;
 		UInt32 m_indexCount;
 		
-		Device * m_device;
 	public:
-		Vertices(Device * device);
+		Vertices();
 		~Vertices();
 	public:
 		void Init();

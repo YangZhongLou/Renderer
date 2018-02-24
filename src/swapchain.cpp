@@ -3,12 +3,15 @@
 #include "utils.h"
 #include "device.h"
 #include "renderer.h"
+#include "vk_instance.h"
+#include "drawboard.h"
 
 namespace Concise
 {
-	Swapchain::Swapchain(VkInstance instance, Device * device, Renderer * renderer) 
-		: m_instance(instance), m_device(device), m_renderer(renderer)
+	Swapchain::Swapchain(Drawboard * drawboard) 
+		: m_drawboard(drawboard)
 	{
+		LoadDllFunction();
 	}
 	
 	Swapchain::~Swapchain()
@@ -17,35 +20,29 @@ namespace Concise
 		{
 			for (uint32_t i = 0; i < m_imageCount; i++)
 			{
-				vkDestroyImageView(m_device->GetLogicalDevice(), m_buffers[i].view, nullptr);
+				vkDestroyImageView(Device::Instance().GetLogicalDevice(), m_buffers[i].view, nullptr);
 			}
 		}
 		if (m_surface != VK_NULL_HANDLE)
 		{
-			DestroySwapchainKHR(m_device->GetLogicalDevice(), m_swapchain, nullptr);
-			vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+			DestroySwapchainKHR(Device::Instance().GetLogicalDevice(), m_swapchain, nullptr);
+			vkDestroySurfaceKHR(Device::Instance().GetVulkanInstance()->Get(), m_surface, nullptr);
 		}
 		m_surface = VK_NULL_HANDLE;
 		m_swapchain = VK_NULL_HANDLE;
 	}
 	
-	void Swapchain::Init()
+	void Swapchain::LoadDllFunction()
 	{
-		InitDllFunction();
-		InitSurface();
-	}
-	
-	void Swapchain::InitDllFunction()
-	{
-		GET_INSTANCE_PROCEDURE_ADDR(m_instance, GetPhysicalDeviceSurfaceSupportKHR);
-		GET_INSTANCE_PROCEDURE_ADDR(m_instance, GetPhysicalDeviceSurfaceCapabilitiesKHR);
-		GET_INSTANCE_PROCEDURE_ADDR(m_instance, GetPhysicalDeviceSurfaceFormatsKHR);
-		GET_INSTANCE_PROCEDURE_ADDR(m_instance, GetPhysicalDeviceSurfacePresentModesKHR);
-		GET_DEVICE_PROCEDURE_ADDR(m_device->GetLogicalDevice(), CreateSwapchainKHR);
-		GET_DEVICE_PROCEDURE_ADDR(m_device->GetLogicalDevice(), DestroySwapchainKHR);
-		GET_DEVICE_PROCEDURE_ADDR(m_device->GetLogicalDevice(), GetSwapchainImagesKHR);
-		GET_DEVICE_PROCEDURE_ADDR(m_device->GetLogicalDevice(), AcquireNextImageKHR);
-		GET_DEVICE_PROCEDURE_ADDR(m_device->GetLogicalDevice(), QueuePresentKHR);
+		GET_INSTANCE_PROCEDURE_ADDR(Device::Instance().GetVulkanInstance()->Get(), GetPhysicalDeviceSurfaceSupportKHR);
+		GET_INSTANCE_PROCEDURE_ADDR(Device::Instance().GetVulkanInstance()->Get(), GetPhysicalDeviceSurfaceCapabilitiesKHR);
+		GET_INSTANCE_PROCEDURE_ADDR(Device::Instance().GetVulkanInstance()->Get(), GetPhysicalDeviceSurfaceFormatsKHR);
+		GET_INSTANCE_PROCEDURE_ADDR(Device::Instance().GetVulkanInstance()->Get(), GetPhysicalDeviceSurfacePresentModesKHR);
+		GET_DEVICE_PROCEDURE_ADDR(Device::Instance().GetLogicalDevice(), CreateSwapchainKHR);
+		GET_DEVICE_PROCEDURE_ADDR(Device::Instance().GetLogicalDevice(), DestroySwapchainKHR);
+		GET_DEVICE_PROCEDURE_ADDR(Device::Instance().GetLogicalDevice(), GetSwapchainImagesKHR);
+		GET_DEVICE_PROCEDURE_ADDR(Device::Instance().GetLogicalDevice(), AcquireNextImageKHR);
+		GET_DEVICE_PROCEDURE_ADDR(Device::Instance().GetLogicalDevice(), QueuePresentKHR);
 	}
 	
 	void Swapchain::InitSurface()
@@ -58,22 +55,23 @@ namespace Concise
 	void Swapchain::InitWin32Surface()
 	{
 		VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = VkFactory::Win32SurfaceCreateInfoKHR();
-		surfaceCreateInfo.hinstance = m_renderer->GetWindowInstance();
-		surfaceCreateInfo.hwnd = m_renderer->GetWindowHandle();
-		VK_CHECK_RESULT(vkCreateWin32SurfaceKHR(m_instance, &surfaceCreateInfo, nullptr, &m_surface));
+		surfaceCreateInfo.hinstance = m_drawboard->GetWindowInstance();
+		surfaceCreateInfo.hwnd = m_drawboard->GetWindowHandle();
+		VK_CHECK_RESULT(vkCreateWin32SurfaceKHR(Device::Instance().GetVulkanInstance()->Get(), 
+			&surfaceCreateInfo, nullptr, &m_surface));
 		
 		/** refactor */
 		UInt32 queueCount;
-		vkGetPhysicalDeviceQueueFamilyProperties(m_device->GetPhysicalDevice(), &queueCount, NULL);
+		vkGetPhysicalDeviceQueueFamilyProperties(Device::Instance().GetPhysicalDevice(), &queueCount, NULL);
 		assert(queueCount >= 1);
 
 		std::vector<VkQueueFamilyProperties> queueProps(queueCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(m_device->GetPhysicalDevice(), &queueCount, queueProps.data());
+		vkGetPhysicalDeviceQueueFamilyProperties(Device::Instance().GetPhysicalDevice(), &queueCount, queueProps.data());
 
 		std::vector<VkBool32> supportsPresent(queueCount);
 		for (UInt32 i = 0; i < queueCount; i++) 
 		{
-			GetPhysicalDeviceSurfaceSupportKHR(m_device->GetPhysicalDevice(), i, m_surface, &supportsPresent[i]);
+			GetPhysicalDeviceSurfaceSupportKHR(Device::Instance().GetPhysicalDevice(), i, m_surface, &supportsPresent[i]);
 		}
 
 		UInt32 graphicsQueueNodeIndex = UINT32_MAX;
@@ -122,11 +120,13 @@ namespace Concise
 		m_queueNodeIndex = graphicsQueueNodeIndex;
 
 		UInt32 formatCount;
-		VK_CHECK_RESULT(GetPhysicalDeviceSurfaceFormatsKHR(m_device->GetPhysicalDevice(), m_surface, &formatCount, NULL));
+		VK_CHECK_RESULT(GetPhysicalDeviceSurfaceFormatsKHR(Device::Instance().GetPhysicalDevice(), 
+			m_surface, &formatCount, NULL));
 		assert(formatCount > 0);
 
 		std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-		VK_CHECK_RESULT(GetPhysicalDeviceSurfaceFormatsKHR(m_device->GetPhysicalDevice(), m_surface, &formatCount, surfaceFormats.data()));
+		VK_CHECK_RESULT(GetPhysicalDeviceSurfaceFormatsKHR(Device::Instance().GetPhysicalDevice(), 
+			m_surface, &formatCount, surfaceFormats.data()));
 
 		if ((formatCount == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
 		{
@@ -157,14 +157,17 @@ namespace Concise
 	void Swapchain::CreateSwapchain(UInt32 * width, UInt32 * height, bool vsync)
 	{
 		VkSurfaceCapabilitiesKHR surfCaps;
-		VK_CHECK_RESULT(GetPhysicalDeviceSurfaceCapabilitiesKHR(m_device->GetPhysicalDevice(), m_surface, &surfCaps));
+		VK_CHECK_RESULT(GetPhysicalDeviceSurfaceCapabilitiesKHR(Device::Instance().GetPhysicalDevice(),
+			m_surface, &surfCaps));
 
 		UInt32 presentModeCount;
-		VK_CHECK_RESULT(GetPhysicalDeviceSurfacePresentModesKHR(m_device->GetPhysicalDevice(), m_surface, &presentModeCount, NULL));
+		VK_CHECK_RESULT(GetPhysicalDeviceSurfacePresentModesKHR(Device::Instance().GetPhysicalDevice(),
+			m_surface, &presentModeCount, NULL));
 		assert(presentModeCount > 0);
 
 		std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-		VK_CHECK_RESULT(GetPhysicalDeviceSurfacePresentModesKHR(m_device->GetPhysicalDevice(), m_surface, &presentModeCount, presentModes.data()));
+		VK_CHECK_RESULT(GetPhysicalDeviceSurfacePresentModesKHR(Device::Instance().GetPhysicalDevice(),
+			m_surface, &presentModeCount, presentModes.data()));
 
 		VkExtent2D swapchainExtent = {};
 		if (surfCaps.currentExtent.width == (UInt32)-1)
@@ -248,26 +251,30 @@ namespace Concise
 		swapchainCreateInfo.compositeAlpha = compositeAlpha;
 
 		VkFormatProperties formatProps;
-		vkGetPhysicalDeviceFormatProperties(m_device->GetPhysicalDevice(), m_colorFormat, &formatProps);
+		vkGetPhysicalDeviceFormatProperties(Device::Instance().GetPhysicalDevice(), 
+			m_colorFormat, &formatProps);
 		if ((formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_TRANSFER_SRC_BIT_KHR) || (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT)) 
 		{
 			swapchainCreateInfo.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 		}
 
-		VK_CHECK_RESULT(CreateSwapchainKHR(m_device->GetLogicalDevice(), &swapchainCreateInfo, nullptr, &m_swapchain));
+		VK_CHECK_RESULT(CreateSwapchainKHR(Device::Instance().GetLogicalDevice(), 
+			&swapchainCreateInfo, nullptr, &m_swapchain));
 
 		if (oldSwapchain != VK_NULL_HANDLE) 
 		{ 
 			for (UInt32 i = 0; i < m_imageCount; i++)
 			{
-				vkDestroyImageView(m_device->GetLogicalDevice(), m_buffers[i].view, nullptr);
+				vkDestroyImageView(Device::Instance().GetLogicalDevice(), m_buffers[i].view, nullptr);
 			}
-			DestroySwapchainKHR(m_device->GetLogicalDevice(), oldSwapchain, nullptr);
+			DestroySwapchainKHR(Device::Instance().GetLogicalDevice(), oldSwapchain, nullptr);
 		}
-		VK_CHECK_RESULT(GetSwapchainImagesKHR(m_device->GetLogicalDevice(), m_swapchain, &m_imageCount, NULL));
+		VK_CHECK_RESULT(GetSwapchainImagesKHR(Device::Instance().GetLogicalDevice(), 
+			m_swapchain, &m_imageCount, NULL));
 
 		m_images.resize(m_imageCount);
-		VK_CHECK_RESULT(GetSwapchainImagesKHR(m_device->GetLogicalDevice(), m_swapchain, &m_imageCount, m_images.data()));
+		VK_CHECK_RESULT(GetSwapchainImagesKHR(Device::Instance().GetLogicalDevice(), 
+			m_swapchain, &m_imageCount, m_images.data()));
 
 		m_buffers.resize(m_imageCount);
 		for (UInt32 i = 0; i < m_imageCount; i++)
@@ -279,7 +286,8 @@ namespace Concise
 			subresourceRange.baseArrayLayer = 0;
 			subresourceRange.layerCount = 1;
 			
-			VkImageViewCreateInfo colorAttachmentView = VkFactory::ImageViewCreateInfo(m_colorFormat, m_images[i], subresourceRange);
+			VkImageViewCreateInfo colorAttachmentView = 
+				VkFactory::ImageViewCreateInfo(m_colorFormat, m_images[i], subresourceRange);
 			colorAttachmentView.components = 
 			{
 				VK_COMPONENT_SWIZZLE_R,
@@ -291,13 +299,15 @@ namespace Concise
 			colorAttachmentView.flags = 0;
 			m_buffers[i].image = m_images[i];
 
-			VK_CHECK_RESULT(vkCreateImageView(m_device->GetLogicalDevice(), &colorAttachmentView, nullptr, &m_buffers[i].view));
+			VK_CHECK_RESULT(vkCreateImageView(Device::Instance().GetLogicalDevice(), 
+				&colorAttachmentView, nullptr, &m_buffers[i].view));
 		}
 	}
 	
 	VkResult Swapchain::AcquireNextImage(VkSemaphore presentCompleteSemaphore, UInt32 * imageIndex)
 	{
-		return AcquireNextImageKHR(m_device->GetLogicalDevice(), m_swapchain, UINT64_MAX, presentCompleteSemaphore, (VkFence)nullptr, imageIndex);
+		return AcquireNextImageKHR(Device::Instance().GetLogicalDevice(), 
+			m_swapchain, UINT64_MAX, presentCompleteSemaphore, (VkFence)nullptr, imageIndex);
 	}
 	
 	VkResult Swapchain::QueuePresent(VkQueue queue, UInt32 imageIndex, VkSemaphore waitSemaphore)

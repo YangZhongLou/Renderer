@@ -33,6 +33,13 @@ namespace Concise
 		UInt32 m_destWidth;
 		UInt32 m_destHeight;
 		bool m_resizing;
+
+	public:
+		static Inputs & Instance() 
+		{
+			static Inputs instance;
+			return instance;
+		}
 	public:
 		Inputs();
 		~Inputs();

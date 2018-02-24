@@ -44,6 +44,6 @@ namespace Concise
 	
 	VulkanInstance::~VulkanInstance()
 	{
-		//TODO
+		vkDestroyInstance(m_instance, nullptr);
 	}
 }

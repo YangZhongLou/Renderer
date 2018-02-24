@@ -16,8 +16,6 @@ namespace Concise
 	{
 		m_swapchain = nullptr;
 		
-		m_vkInstance = new VulkanInstance();
-		m_device = new Device(m_vkInstance->Get());
 		m_vertices = new Vertices(m_device);
 		m_uniforms = new Uniforms(m_device, this);
 	}
@@ -26,11 +24,6 @@ namespace Concise
 	{
 		DestroyCommandBuffers();
 
-		if (m_descriptorPool != VK_NULL_HANDLE)
-		{
-			vkDestroyDescriptorPool(m_device->GetLogicalDevice(), m_descriptorPool, nullptr);
-		}
-
 		vkDestroyRenderPass(m_device->GetLogicalDevice(), m_renderPass, nullptr);
 
 		for (UInt32 i = 0; i < m_framebuffers.size(); i++)
@@ -38,37 +31,11 @@ namespace Concise
 			vkDestroyFramebuffer(m_device->GetLogicalDevice(), m_framebuffers[i], nullptr);
 		}
 
-		/** TODO, RAII */
-		vkDestroySemaphore(m_device->GetLogicalDevice(), m_presentCompleteSemaphore, nullptr);
-		vkDestroySemaphore(m_device->GetLogicalDevice(), m_renderCompleteSemaphore, nullptr);
-
-		for (auto& fence : m_fences)
-		{
-			vkDestroyFence(m_device->GetLogicalDevice(), fence, nullptr);
-		}
-		
-		vkDestroyPipeline(m_device->GetLogicalDevice(), m_pipeline, nullptr);
-
-		vkDestroyPipelineLayout(m_device->GetLogicalDevice(), m_pipelineLayout, nullptr);
-		vkDestroyDescriptorSetLayout(m_device->GetLogicalDevice(), m_descriptorSetLayout, nullptr);
-		vkDestroyPipelineCache(m_device->GetLogicalDevice(), m_pipelineCache, nullptr);
-
-		vkDestroyImageView(m_device->GetLogicalDevice(), m_depthStencil.view, nullptr);
-		vkDestroyImage(m_device->GetLogicalDevice(), m_depthStencil.image, nullptr);
-		vkFreeMemory(m_device->GetLogicalDevice(), m_depthStencil.mem, nullptr);
-
 		SAFE_DELETE(m_uniforms);
 		SAFE_DELETE(m_vertices);
 		SAFE_DELETE(m_swapchain);
 		SAFE_DELETE(m_debugger);
 		SAFE_DELETE(m_device);
-
-		vkDestroyInstance(m_vkInstance, nullptr);
-	}
-	
-	void Renderer::InitVeritces()
-	{
-		
 	}
 	
 	void Renderer::DestroyCommandBuffers()

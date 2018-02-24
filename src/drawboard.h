@@ -16,7 +16,7 @@ namespace Concise
 	private:
 		HWND m_window;
 		HINSTANCE m_windowInstance;
-				
+
 		UInt32 m_width = 1280;
 		UInt32 m_height = 720;
 	public:
@@ -27,5 +27,7 @@ namespace Concise
 		
 		UInt32 GetWidth() const { return m_width; }
 		UInt32 GetHeight() const { return m_height; }
+		HWND GetWindowHandle() const { return m_window; }
+		HINSTANCE GetWindowInstance() const { return m_windowInstance; }
 	};
 }

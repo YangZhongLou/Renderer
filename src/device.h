@@ -10,6 +10,7 @@
 namespace Concise
 {
 	struct Buffer;
+	class VulkanInstance;
 	
 	class Device
 	{
@@ -49,12 +50,14 @@ namespace Concise
 			VkImageView view;
 		} m_depthStencil;
 		
-		/** VkInstance reference */
-		VkInstance m_vkInstance;
+		VulkanInstance * m_vkInstance;
 	public:
-		Device(VkInstance instance);
+		static Device & Instance();
+	private:
+		Device();
 		~Device();
 	public:
+		VulkanInstance * GetVulkanInstance() const { return m_vkInstance; }
 		VkDevice GetLogicalDevice() const { return m_logicalDevice; }
 		VkPhysicalDevice GetPhysicalDevice() const { return m_physicalDevice; }
 		UInt32 GetMemoryTypeIndex(UInt32 typeBits, VkMemoryPropertyFlags properties);

@@ -9,9 +9,6 @@
 
 namespace Concise
 {
-	class Device;
-	class Renderer;
-	
 	class Uniforms
 	{
 	private:
@@ -28,16 +25,13 @@ namespace Concise
 			VkBuffer buffer;			
 			VkDescriptorBufferInfo descriptor;
 		} m_vsBuffer;
-		
-		Device * m_device;
-		Renderer * m_renderer;
+
 	public:
-		Uniforms(Device * device, Renderer * renderer);
+		Uniforms();
 		~Uniforms();
 		
 	public:
-		void Init();
-		void UpdateVS();	
+		void UpdateVS(UInt32 width, UInt32 height);	
 	public:
 		const VkDescriptorBufferInfo & GetDescriptorBufferInfo() { return m_vsBuffer.descriptor; }
 	};

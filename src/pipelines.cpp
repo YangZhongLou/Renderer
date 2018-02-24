@@ -1,19 +1,20 @@
 #include "pipelines.h"
 #include "device.h"
 #include "defines.h"
-#include "vk_factory.h"
+#include "vk_factory.hpp"
 
 namespace Concise
 {
-	Pipelines::Pipelines(Device * device)
-	{
-		m_device = device;
-		
+	Pipelines::Pipelines()
+	{		
 		VkPipelineCacheCreateInfo pipelineCacheCreateInfo = VkFactory::PipelineCacheCreateInfo();
-		VK_CHECK_RESULT(vkCreatePipelineCache(m_device->GetLogicalDevice(), &pipelineCacheCreateInfo, nullptr, &m_pipelineCache))
+		VK_CHECK_RESULT(vkCreatePipelineCache(Device::Instance().GetLogicalDevice(), 
+			&pipelineCacheCreateInfo, nullptr, &m_pipelineCache))
+
+		
 	}
 	
-	~Pipelines()
+	Pipelines::~Pipelines()
 	{
 		
 	}

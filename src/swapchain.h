@@ -10,8 +10,7 @@
 
 namespace Concise
 {
-	class Device;
-	class Renderer;
+	class Drawboard;
 	
 	struct SwapchainBuffer
 	{
@@ -22,9 +21,7 @@ namespace Concise
 	class Swapchain
 	{
 	private:
-		VkInstance m_instance;
-		Device * m_device;		
-		Renderer * m_renderer;
+		Drawboard * m_drawboard;
 
 		VkSurfaceKHR m_surface;
 		
@@ -49,11 +46,9 @@ namespace Concise
 		PFN_vkQueuePresentKHR QueuePresentKHR;
 		
 	public:
-		Swapchain(VkInstance instance, Device * device, Renderer * renderer);
+		Swapchain(Drawboard * drawboard);
 		~Swapchain();
-	public:
-		void Init();
-		
+	public:		
 		void CreateSwapchain(UInt32 * width, UInt32 * height, bool vsync = false);
 		UInt32 GetImageCount() { return m_imageCount; }
 		SwapchainBuffer & GetBuffer(UInt32 i) { return m_buffers[i]; }
@@ -63,7 +58,7 @@ namespace Concise
 		VkResult QueuePresent(VkQueue queue, UInt32 imageIndex, VkSemaphore waitSemaphore = VK_NULL_HANDLE);
 	private:
 		/** function from dll */
-		void InitDllFunction();
+		void LoadDllFunction();
 		void InitSurface();
 		void InitWin32Surface();
 	};
