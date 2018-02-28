@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace Conicse
+namespace Concise
 {
 	class Dispatcher;
 	//TODO

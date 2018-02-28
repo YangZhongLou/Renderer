@@ -43,6 +43,7 @@ ENDIF()
 
 IF(MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+	add_compile_options("/std:c++latest")
 ENDIF(MSVC)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/")

@@ -13,35 +13,26 @@ namespace Concise
 	class Vertices;
 	class Uniforms;
 	class Swapchain;
+	class Synchronizations;
 
 	struct Vertex;
 	
 	class Renderer
 	{
-	private:
-		UInt32 m_currentBuffer = 0;
-		std::vector<VkCommandBuffer> m_drawCmdBuffers;
-				
+	private:				
 		Vertices * m_vertices;
 		Uniforms * m_uniforms;
 		Swapchain * m_swapchain;
+		Synchronizations * m_synchronizations;
 				
 		Camera m_camera;
 	public:
 		Renderer();
 		~Renderer();
 	public:
-		/** refactor this later */
-
-		void WindowResize();
-		void WindowResized();
-		void ViewChanged();
-
 		void Loop();
 		void RenderFrame();
 		
 		void SubmitVerticesData(std::vector<Vertex> & verticesData, std::vector<UInt32> & indicesData);
-		void SetViewports(std::vector<VkViewport> & viewports);
-		void SetPipelines(std::vector<VkPipeline> & pipelines);
 	};
 }

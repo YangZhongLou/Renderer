@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <vulkan/vulkan.h>
+#include "types.h"
 
 namespace Concise
 {
@@ -14,8 +15,7 @@ namespace Concise
 	private:
 		std::vector<VkCommandBuffer> m_drawCmdBuffers;
 	public:
-		CommandBuffers();
+		CommandBuffers(UInt32 size);
 		~CommandBuffers();
-
 	};
 }
