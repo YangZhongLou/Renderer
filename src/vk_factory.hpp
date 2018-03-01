@@ -201,45 +201,77 @@ namespace Concise
 			return viewportState;
 		}
 
-		inline VkPipelineColorBlendStateCreateInfo PipelineColorBlendStateCreateInfo(std::vector<VkPipelineColorBlendAttachmentState> & attachments)
+		inline VkPipelineColorBlendStateCreateInfo PipelineColorBlendStateCreateInfo(
+			UInt32 attachmentCount,
+			VkPipelineColorBlendAttachmentState * pAttachments,
+			VkPipelineColorBlendStateCreateFlags flags = 0,
+			VkBool32 logicOpEnable = VK_FALSE,
+			VkLogicOp logicOp = VK_LOGIC_OP_CLEAR
+			)
 		{
 			VkPipelineColorBlendStateCreateInfo colorBlendState {};
 			colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-			colorBlendState.attachmentCount = static_cast<UInt32>(attachments.size());
-			colorBlendState.pAttachments = attachments.data();
+			colorBlendState.attachmentCount = attachmentCount;
+			colorBlendState.pAttachments = pAttachments;
+			colorBlendState.flags = flags;
+			colorBlendState.logicOpEnable = logicOpEnable;
+			colorBlendState.logicOp = logicOp;
 			
 			return colorBlendState;
 		}
 
-		inline VkPipelineColorBlendAttachmentState PipelineColorBlendAttachmentState()
+		inline VkPipelineColorBlendAttachmentState PipelineColorBlendAttachmentState(
+			VkColorComponentFlags colorWriteMask = 0xf,
+			VkBool32 blendEnable = VK_FALSE,
+			VkBlendFactor srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+			VkBlendFactor dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+			VkBlendOp colorBlendOp = VK_BLEND_OP_ADD,
+			VkBlendFactor srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+			VkBlendFactor dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+			VkBlendOp alphaBlendOp = VK_BLEND_OP_ADD
+		)
 		{
 			VkPipelineColorBlendAttachmentState blendAttachmentState {};
-			blendAttachmentState.colorWriteMask = 0xf;
-			blendAttachmentState.blendEnable = VK_FALSE;
+			blendAttachmentState.colorWriteMask = colorWriteMask;
+			blendAttachmentState.blendEnable = blendEnable;
 			
 			return blendAttachmentState;
 		}
 		
-		inline VkPipelineRasterizationStateCreateInfo PipelineRasterizationStateCreateInfo()
+		inline VkPipelineRasterizationStateCreateInfo PipelineRasterizationStateCreateInfo(
+			VkPolygonMode polygonMode,
+			VkCullModeFlags cullMode,
+			VkFrontFace frontFace,
+			float lineWidth = 1.0f,
+			VkPipelineRasterizationStateCreateFlags flags = 0,
+			VkBool32 depthClampEnable = VK_FALSE,
+			VkBool32 rasterizerDiscardEnable = VK_FALSE,
+			VkBool32 depthBiasEnable = VK_FALSE
+		)
 		{
 			VkPipelineRasterizationStateCreateInfo rasterizationState {};
 			rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-			rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-			rasterizationState.cullMode = VK_CULL_MODE_NONE;
-			rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-			rasterizationState.depthClampEnable = VK_FALSE;
-			rasterizationState.rasterizerDiscardEnable = VK_FALSE;
-			rasterizationState.depthBiasEnable = VK_FALSE;
-			rasterizationState.lineWidth = 1.0f;
+			rasterizationState.polygonMode = polygonMode;
+			rasterizationState.cullMode = cullMode;
+			rasterizationState.frontFace = frontFace;
+			rasterizationState.depthClampEnable = depthClampEnable;
+			rasterizationState.rasterizerDiscardEnable = rasterizerDiscardEnable;
+			rasterizationState.depthBiasEnable = depthBiasEnable;
+			rasterizationState.lineWidth = lineWidth;
 			
 			return rasterizationState;
 		}
 	
-		inline VkPipelineInputAssemblyStateCreateInfo PipelineInputAssemblyStateCreateInfo()
+		inline VkPipelineInputAssemblyStateCreateInfo PipelineInputAssemblyStateCreateInfo(
+			VkPipelineInputAssemblyStateCreateFlags flags,
+			VkPrimitiveTopology topology,
+			VkBool32 primitiveRestartEnable)
 		{
 			VkPipelineInputAssemblyStateCreateInfo inputAssemblyState {};
 			inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-			inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+			inputAssemblyState.flags = flags;
+			inputAssemblyState.topology = topology;
+			inputAssemblyState.primitiveRestartEnable = primitiveRestartEnable;
 			
 			return inputAssemblyState;
 		}

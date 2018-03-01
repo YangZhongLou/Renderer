@@ -20,12 +20,13 @@ namespace Concise
 	class Thread
 	{
 	private:
-		bool destroying = false;
-		std::thread worker;
-		std::queue<std::function<void()>> jobQueue;
-		std::mutex queueMutex;
-		std::condition_variable condition;
+		bool m_destroying = false;
+		std::thread m_worker;
+		std::queue<std::function<void()>> m_jobQueue;
+		std::mutex m_queueMutex;
+		std::condition_variable m_condition;
 
+	private:
 		// Loop through all remaining jobs
 		void Loop()
 		{
@@ -33,21 +34,21 @@ namespace Concise
 			{
 				std::function<void()> job;
 				{
-					std::unique_lock<std::mutex> lock(queueMutex);
-					condition.wait(lock, [this] { return !jobQueue.empty() || destroying; });
-					if (destroying)
+					std::unique_lock<std::mutex> lock(m_queueMutex);
+					m_condition.wait(lock, [this] { return !m_jobQueue.empty() || m_destroying; });
+					if (m_destroying)
 					{
 						break;
 					}
-					job = jobQueue.front();
+					job = m_jobQueue.front();
 				}
 
 				job();
 
 				{
-					std::lock_guard<std::mutex> lock(queueMutex);
-					jobQueue.pop();
-					condition.notify_one();
+					std::lock_guard<std::mutex> lock(m_queueMutex);
+					m_jobQueue.pop();
+					m_condition.notify_one();
 				}
 			}
 		}
@@ -55,35 +56,35 @@ namespace Concise
 	public:
 		Thread()
 		{
-			worker = std::thread(&Thread::Loop, this);
+			m_worker = std::thread(&Thread::Loop, this);
 		}
 
 		~Thread()
 		{
-			if (worker.joinable())
+			if (m_worker.joinable())
 			{
 				Wait();
-				queueMutex.lock();
-				destroying = true;
-				condition.notify_one();
-				queueMutex.unlock();
-				worker.join();
+				m_queueMutex.lock();
+				m_destroying = true;
+				m_condition.notify_one();
+				m_queueMutex.unlock();
+				m_worker.join();
 			}
 		}
 
 		// Add a new job to the thread's queue
 		void AddJob(std::function<void()> function)
 		{
-			std::lock_guard<std::mutex> lock(queueMutex);
-			jobQueue.push(std::move(function));
-			condition.notify_one();
+			std::lock_guard<std::mutex> lock(m_queueMutex);
+			m_jobQueue.push(std::move(function));
+			m_condition.notify_one();
 		}
 
 		// Wait until all work items have been finished
 		void Wait()
 		{
-			std::unique_lock<std::mutex> lock(queueMutex);
-			condition.wait(lock, [this]() { return jobQueue.empty(); });
+			std::unique_lock<std::mutex> lock(m_queueMutex);
+			m_condition.wait(lock, [this]() { return m_jobQueue.empty(); });
 		}
 	};
 
@@ -92,16 +93,12 @@ namespace Concise
 	private:
 		std::vector<std::unique_ptr<Thread>> m_threads;
 
-		void SetPoolSize(UInt32 count)
-		{
-			m_threads.clear();
-			for (auto i = 0; i < count; i++)
-			{
-				m_threads.push_back(std::make_unique<Thread>());
-			}
-		}
 
-		// Wait until all m_threads have finished their work items
+	public:
+		ThreadPool(UInt32 count);
+		~ThreadPool();
+	public:
+		/** Wait until all threads have finished their work items */
 		void Wait()
 		{
 			for (auto & thread : m_threads)

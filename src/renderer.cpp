@@ -1,3 +1,5 @@
+
+#include <thread>
 #include "renderer.h"
 #include "device.h"
 #include "vk_factory.hpp"
@@ -11,6 +13,7 @@
 #include "vk_instance.h"
 #include "defines.h"
 #include "synchronizations.h"
+#include "threadpool.h"
 
 namespace Concise
 {
@@ -20,6 +23,7 @@ namespace Concise
 		
 		m_vertices = new Vertices();
 		m_uniforms = new Uniforms();
+		m_threadPool = new ThreadPool(std::thread::hardware_concurrency());
 	}
 	
 	Renderer::~Renderer()
@@ -27,6 +31,7 @@ namespace Concise
 		SAFE_DELETE(m_uniforms);
 		SAFE_DELETE(m_vertices);
 		SAFE_DELETE(m_swapchain);
+		SAFE_DELETE(m_threadPool);
 	}
 
 	void Renderer::Loop()

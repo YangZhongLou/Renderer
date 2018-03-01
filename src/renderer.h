@@ -14,6 +14,7 @@ namespace Concise
 	class Uniforms;
 	class Swapchain;
 	class Synchronizations;
+	class ThreadPool;
 
 	struct Vertex;
 	
@@ -24,6 +25,7 @@ namespace Concise
 		Uniforms * m_uniforms;
 		Swapchain * m_swapchain;
 		Synchronizations * m_synchronizations;
+		ThreadPool * m_threadPool;
 				
 		Camera m_camera;
 	public:
