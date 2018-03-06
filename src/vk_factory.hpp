@@ -114,6 +114,24 @@ namespace Concise
 			return shaderStageCreateInfo;
 		}
 	
+		inline VkPipelineVertexInputStateCreateInfo PipelineVertexInputStateCreateInfo(
+			UInt32 vertexBindingDescriptionCount,
+			VkVertexInputBindingDescription * pVertexBindingDescriptions,
+			UInt32 vertexAttributeDescriptionCount,
+			VkVertexInputAttributeDescription * pVertexAttributeDescriptions,
+			VkPipelineVertexInputStateCreateFlags flags = 0
+		)
+		{
+			VkPipelineVertexInputStateCreateInfo vertexInputState{};
+			vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+			vertexInputState.vertexBindingDescriptionCount = vertexBindingDescriptionCount;
+			vertexInputState.pVertexBindingDescriptions = pVertexBindingDescriptions;
+			vertexInputState.vertexAttributeDescriptionCount = vertexAttributeDescriptionCount;
+			vertexInputState.pVertexAttributeDescriptions = pVertexAttributeDescriptions;
+
+			return vertexInputState;
+		}
+
 		inline VkPipelineVertexInputStateCreateInfo PipelineVertexInputStateCreateInfo(std::vector<VkVertexInputBindingDescription> & vertexBindingDescriptions, 
 			std::vector<VkVertexInputAttributeDescription> & vertexAttributeDescriptions)
 		{
@@ -126,6 +144,18 @@ namespace Concise
 
 			return vertexInputState;
 		}
+
+		inline VkVertexInputBindingDescription VertexInputBindingDescription(
+			UInt32 binding,
+			UInt32 stride,
+			VkVertexInputRate inputRate)
+		{
+			VkVertexInputBindingDescription vInputBindDescription {};
+			vInputBindDescription.binding = binding;
+			vInputBindDescription.stride = stride;
+			vInputBindDescription.inputRate = inputRate;
+			return vInputBindDescription;
+		}
 		
 		inline void VertexInputBindingDescriptions(std::vector<VkVertexInputBindingDescription> & vertexBindingDescriptions)
 		{
@@ -137,6 +167,20 @@ namespace Concise
 			vertexBindingDescriptions.push_back(vertexInputBinding);
 		}
 	
+		inline VkVertexInputAttributeDescription VertexInputAttributeDescription(
+			UInt32 binding,
+			UInt32 location,
+			VkFormat format,
+			UInt32 offset)
+		{
+			VkVertexInputAttributeDescription vInputAttribDescription {};
+			vInputAttribDescription.location = location;
+			vInputAttribDescription.binding = binding;
+			vInputAttribDescription.format = format;
+			vInputAttribDescription.offset = offset;
+			return vInputAttribDescription;
+		}
+
 		inline void VertexInputAttributeDescriptions(std::vector<VkVertexInputAttributeDescription> & vertexInputAttributeDescriptions)
 		{
 			VkVertexInputAttributeDescription vertexInputAttributeDescription {};
@@ -154,50 +198,85 @@ namespace Concise
 			vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
 		}
 	
-		inline VkPipelineMultisampleStateCreateInfo PipelineMultisampleStateCreateInfo()
+		inline VkPipelineMultisampleStateCreateInfo PipelineMultisampleStateCreateInfo(
+			VkSampleCountFlagBits rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+			VkBool32 sampleShadingEnable = VK_FALSE,
+			float minSampleShading = 0.0f,
+			VkSampleMask * pSampleMask = nullptr,
+			VkBool32 alphaToCoverageEnable = VK_FALSE,
+			VkBool32 alphaToOneEnable = VK_FALSE,
+			VkPipelineMultisampleStateCreateFlags flags = 0
+		)
 		{
 			VkPipelineMultisampleStateCreateInfo multisampleState {};
 			multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-			multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-			multisampleState.pSampleMask = nullptr;
-			
+			multisampleState.rasterizationSamples = rasterizationSamples;
+			multisampleState.sampleShadingEnable = sampleShadingEnable;
+			multisampleState.minSampleShading = minSampleShading;
+			multisampleState.alphaToCoverageEnable = pSampleMask;
+			multisampleState.alphaToCoverageEnable = alphaToCoverageEnable;
+			multisampleState.alphaToOneEnable = alphaToCoverageEnable;
+
 			return multisampleState;
 		}
 	
-		inline VkPipelineDepthStencilStateCreateInfo PipelineDepthStencilStateCreateInfo()
+		inline VkPipelineDepthStencilStateCreateInfo PipelineDepthStencilStateCreateInfo(
+			VkBool32 depthTestEnable = VK_TRUE,
+			VkBool32 depthWriteEnable = VK_TRUE,
+			VkCompareOp depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
+			VkBool32 depthBoundsTestEnable = VK_FALSE,
+			VkBool32 stencilTestEnable = VK_FALSE,
+			VkStencilOp backFailOp = VK_STENCIL_OP_KEEP,
+			VkStencilOp backPassOp = VK_STENCIL_OP_KEEP,
+			VkCompareOp backCompareOp = VK_COMPARE_OP_ALWAYS
+		)
 		{
 			VkPipelineDepthStencilStateCreateInfo depthStencilState {};
 			depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-			depthStencilState.depthTestEnable = VK_TRUE;
-			depthStencilState.depthWriteEnable = VK_TRUE;
-			depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-			depthStencilState.depthBoundsTestEnable = VK_FALSE;
-			depthStencilState.back.failOp = VK_STENCIL_OP_KEEP;
-			depthStencilState.back.passOp = VK_STENCIL_OP_KEEP;
-			depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
-			depthStencilState.stencilTestEnable = VK_FALSE;
+			depthStencilState.depthTestEnable = depthTestEnable;
+			depthStencilState.depthWriteEnable = depthWriteEnable;
+			depthStencilState.depthCompareOp = depthCompareOp;
+			depthStencilState.depthBoundsTestEnable = depthBoundsTestEnable;
+			depthStencilState.back.failOp = backFailOp;
+			depthStencilState.back.passOp = backPassOp;
+			depthStencilState.back.compareOp = backCompareOp;
+			depthStencilState.stencilTestEnable = stencilTestEnable;
 			depthStencilState.front = depthStencilState.back;
 			
 			return depthStencilState;
 		}
 	
-		inline VkPipelineDynamicStateCreateInfo PipelineDynamicStateCreateInfo(std::vector<VkDynamicState> & dynamicStates)
+		inline VkPipelineDynamicStateCreateInfo PipelineDynamicStateCreateInfo(
+			UInt32 dynamicStateCount,
+			VkDynamicState * pDynamicStates,
+			VkPipelineDynamicStateCreateFlags flags = 0
+		)
 		{
 			VkPipelineDynamicStateCreateInfo dynamicState {};
 			dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-			dynamicState.pDynamicStates = dynamicStates.data();
-			dynamicState.dynamicStateCount = static_cast<UInt32>(dynamicStates.size());
+			dynamicState.pDynamicStates = pDynamicStates;
+			dynamicState.dynamicStateCount = dynamicStateCount;
+			dynamicState.flags = flags;
 			
 			return dynamicState;
 		}
 		
-		inline VkPipelineViewportStateCreateInfo PipelineViewportStateCreateInfo()
+		inline VkPipelineViewportStateCreateInfo PipelineViewportStateCreateInfo(
+			UInt32 viewportCount = 1,
+			UInt32 scissorCount = 1,
+			VkViewport * pViewports = nullptr,
+			VkRect2D * pScissors = nullptr,
+			VkPipelineViewportStateCreateFlags flags = 0
+		)
 		{
 			VkPipelineViewportStateCreateInfo viewportState {};
 			viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-			viewportState.viewportCount = 1;
-			viewportState.scissorCount = 1;
-			
+			viewportState.viewportCount = viewportCount;
+			viewportState.scissorCount = scissorCount;
+			viewportState.pViewports = pViewports;
+			viewportState.pScissors = pScissors;
+			viewportState.flags = flags;
+
 			return viewportState;
 		}
 
@@ -346,11 +425,11 @@ namespace Concise
 		{
 			VkRenderPassCreateInfo renderPassInfo = {};
 			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-			renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());		
+			renderPassInfo.attachmentCount = static_cast<UInt32>(attachments.size());		
 			renderPassInfo.pAttachments = attachments.data();							
 			renderPassInfo.subpassCount = 1;												
 			renderPassInfo.pSubpasses = subpassDescription;								
-			renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());	
+			renderPassInfo.dependencyCount = static_cast<UInt32>(dependencies.size());	
 			renderPassInfo.pDependencies = dependencies.data();			
 
 			return renderPassInfo;

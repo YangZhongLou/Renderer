@@ -20,10 +20,9 @@ namespace Concise
 	{	
 	private:
 		VkShaderModule m_shaderModule;
-		Device * m_device;
 		ShaderType m_shaderType;
 	public:
-		Shader(Device * device, ShaderType shaderType, std::string filename);
+		Shader(ShaderType shaderType, std::string filename);
 		~Shader();
 	public:
 		VkShaderModule & GetModule() { return m_shaderModule; }

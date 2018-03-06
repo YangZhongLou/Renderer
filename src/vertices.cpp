@@ -15,6 +15,8 @@ namespace Concise
 		
 		m_indexStagingBuffer = new Buffer;
 		m_indexBuffer = new Buffer;
+
+		InitBuffers();
 	}
 	
 	Vertices::~Vertices()
@@ -25,7 +27,7 @@ namespace Concise
 		SAFE_DELETE(m_indexStagingBuffer);
 	}
 	
-	void Vertices::Init()
+	void Vertices::InitBuffers()
 	{
 		/** vertex buffer */
 		VkBufferCreateInfo vertexBufferCreateInfo = 
@@ -87,6 +89,11 @@ namespace Concise
 		VK_CHECK_RESULT(vkBindBufferMemory(Device::Instance().GetLogicalDevice(), 
 			m_indexStagingBuffer->buffer, m_indexStagingBuffer->memory, 0));
 	}
+
+	void Vertices::Submit(std::vector<float> & verticesData, std::vector<UInt32> & indicesData)
+	{
+
+	}
 	
 	/** TODO, when buffer is full, flush data and reset buffer-data-offset */
 	void Vertices::Submit(std::vector<Vertex> & vertexData, std::vector<UInt32> & indexData)
@@ -125,5 +132,89 @@ namespace Concise
 		m_indexDataOffset += indexDataSize;
 
 		Device::Instance().FlushCommandBuffer(copyCmd);
+	}
+
+	/** 
+	* TODO, make sure vertices data stream layout is the same as vertexLayout.
+	*/
+	void Vertices::SetInputLayout(VertexLayout & vertexLayout)
+	{
+		m_verticesInput.bindingDescriptions.resize(1);
+		m_verticesInput.bindingDescriptions[0] =
+			VkFactory::VertexInputBindingDescription(
+				VERTEX_BUFFER_BIND_ID,
+				vertexLayout.Stride(),
+				VK_VERTEX_INPUT_RATE_VERTEX);
+
+		m_verticesInput.attributeDescriptions.resize(vertexLayout.components.size());
+
+		int count = 0;
+		int offset = 0;
+		for (auto& component : vertexLayout.components)
+		{
+			switch (component)
+			{
+			case VERTEX_COMPONENT_POSITION:
+				m_verticesInput.attributeDescriptions[count] =
+					VkFactory::VertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID,
+						count,
+						VK_FORMAT_R32G32B32_SFLOAT,
+						offset);
+				offset += 3 * sizeof(float);
+				break;
+			case VERTEX_COMPONENT_NORMAL:
+				m_verticesInput.attributeDescriptions[count] =
+					VkFactory::VertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID,
+						count,
+						VK_FORMAT_R32G32B32_SFLOAT,
+						offset);
+				offset += 3 * sizeof(float);
+				break;
+			case VERTEX_COMPONENT_UV:
+				m_verticesInput.attributeDescriptions[count] =
+					VkFactory::VertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID,
+						count,
+						VK_FORMAT_R32G32_SFLOAT,
+						offset);
+				offset += 2 * sizeof(float);
+				break;
+			case VERTEX_COMPONENT_COLOR:
+				m_verticesInput.attributeDescriptions[count] =
+					VkFactory::VertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID,
+						count,
+						VK_FORMAT_R32G32B32_SFLOAT,
+						offset);
+				offset += 3 * sizeof(float);
+				break;
+			case VERTEX_COMPONENT_TANGENT:
+				m_verticesInput.attributeDescriptions[count] =
+					VkFactory::VertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID,
+						count,
+						VK_FORMAT_R32G32B32_SFLOAT,
+						offset);
+				offset += 3 * sizeof(float);
+				break;
+			case VERTEX_COMPONENT_BITANGENT:
+				m_verticesInput.attributeDescriptions[count] =
+					VkFactory::VertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID,
+						count,
+						VK_FORMAT_R32G32B32_SFLOAT,
+						offset);
+				offset += 3 * sizeof(float);
+				break;
+				// Dummy components for padding
+			case VERTEX_COMPONENT_DUMMY_FLOAT:
+				break;
+			case VERTEX_COMPONENT_DUMMY_VEC4:
+				break;
+			};
+			count++;
+		}
+		assert(count == m_verticesInput.attributeDescriptions.size() - 1);
+		m_verticesInput.inputState =
+			VkFactory::PipelineVertexInputStateCreateInfo(
+				m_verticesInput.bindingDescriptions,
+				m_verticesInput.attributeDescriptions
+			);
 	}
 }

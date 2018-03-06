@@ -2,6 +2,7 @@
 #include "device.h"
 #include "defines.h"
 #include "vk_factory.hpp"
+#include "shader.h"
 
 namespace Concise
 {
@@ -35,32 +36,26 @@ namespace Concise
 				&blendAttachmentState);
 
 		VkPipelineDepthStencilStateCreateInfo depthStencilState =
-			vks::initializers::pipelineDepthStencilStateCreateInfo(
-				VK_TRUE,
-				VK_TRUE,
-				VK_COMPARE_OP_LESS_OR_EQUAL);
+			VkFactory::PipelineDepthStencilStateCreateInfo();
 
 		VkPipelineViewportStateCreateInfo viewportState =
-			vks::initializers::pipelineViewportStateCreateInfo(1, 1, 0);
+			VkFactory::PipelineViewportStateCreateInfo(1, 1);
 
 		VkPipelineMultisampleStateCreateInfo multisampleState =
-			vks::initializers::pipelineMultisampleStateCreateInfo(
-				VK_SAMPLE_COUNT_1_BIT,
-				0);
+			VkFactory::PipelineMultisampleStateCreateInfo(
+				VK_SAMPLE_COUNT_1_BIT);
 
 		std::vector<VkDynamicState> dynamicStateEnables = {
 			VK_DYNAMIC_STATE_VIEWPORT,
 			VK_DYNAMIC_STATE_SCISSOR
 		};
-		VkPipelineDynamicStateCreateInfo dynamicState =
-			vks::initializers::pipelineDynamicStateCreateInfo(
-				dynamicStateEnables.data(),
-				dynamicStateEnables.size(),
-				0);
 
-		// Solid rendering pipeline
-		// Load shaders
-		std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
+		VkPipelineDynamicStateCreateInfo dynamicState =
+			VkFactory::PipelineDynamicStateCreateInfo(
+				dynamicStateEnables.size(),
+				dynamicStateEnables.data());
+
+		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
 		shaderStages[0] = loadShader(getAssetPath() + "shaders/multithreading/phong.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
 		shaderStages[1] = loadShader(getAssetPath() + "shaders/multithreading/phong.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);

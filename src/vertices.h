@@ -64,6 +64,8 @@ namespace Concise
 
 	struct Buffer;
 	
+	#define VERTEX_BUFFER_BIND_ID 0
+
 	#define DEFAULT_VERTEX_DATA_SIZE 2048 * sizeof(float) * 16
 	#define DEFAULT_INDEX_DATA_SIZE 2048 * sizeof(UInt32) * 16
 	#define DEFAULT_STAGING_BUFFER_SIZE 2048 * sizeof(UInt32)
@@ -79,15 +81,31 @@ namespace Concise
 		Buffer * m_indexBuffer;
 		UInt32 m_indexDataOffset;
 		UInt32 m_indexCount;
+
+		struct 
+		{
+			VkPipelineVertexInputStateCreateInfo inputState;
+			std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+			std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+		} m_verticesInput;
 		
 	public:
+		static Vertices & Instance() 
+		{
+			static Vertices instance;
+			return instance;
+		}
+	private:
 		Vertices();
 		~Vertices();
 	public:
-		void Init();
+		void SetInputLayout(VertexLayout & vertexLayout);
+		void Submit(std::vector<float> & verticesData, std::vector<UInt32> & indicesData);
 		void Submit(std::vector<Vertex>& vertexData, std::vector<UInt32>& indexData);
 		const Buffer & GetVertexBuffer() const { return *m_vertexBuffer; }
 		const Buffer & GetIndexBuffer() const { return *m_indexBuffer; }
 		UInt32 GetIndexCount() const { return m_indexCount; };
+	private:
+		void InitBuffers();
 	};
 }

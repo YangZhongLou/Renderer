@@ -16,7 +16,7 @@ namespace Concise
 		VkRenderPass m_renderpass;
 		Device * m_device;
 	public:
-		Renderpass(Device * device, VkFormat colorFormat, VkFormat depthFormat);
+		Renderpass(VkFormat colorFormat, VkFormat depthFormat);
 		~Renderpass();
 	public:
 		VkRenderPass & Get() { return m_renderpass; }

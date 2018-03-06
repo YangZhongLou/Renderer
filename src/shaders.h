@@ -35,7 +35,7 @@ namespace Concise
 		{
 			m_shaders.clear();
 		}
-	}
+	};
 
 	class Shaders
 	{

@@ -6,7 +6,7 @@
 
 namespace Concise
 {
-	Renderpass::Renderpass(Device * device, VkFormat colorFormat, VkFormat depthFormat)
+	Renderpass::Renderpass(VkFormat colorFormat, VkFormat depthFormat)
 	{
 		std::array<VkAttachmentDescription, 2> attachments = {};
 		// Color attachment
@@ -75,11 +75,12 @@ namespace Concise
 		renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
 		renderPassInfo.pDependencies = dependencies.data();
 
-		VK_CHECK_RESULT(vkCreateRenderPass(device->GetLogicalDevice(), &renderPassInfo, nullptr, &m_renderpass));
+		VK_CHECK_RESULT(vkCreateRenderPass(Device::Instance().GetLogicalDevice(), 
+			&renderPassInfo, nullptr, &m_renderpass));
 	}
 
 	Renderpass::~Renderpass()
 	{
-		vkDestroyRenderPass(m_device, renderPass, nullptr);
+		vkDestroyRenderPass(Device::Instance().GetLogicalDevice(), m_renderpass, nullptr);
 	}
 }
