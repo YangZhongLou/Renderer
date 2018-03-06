@@ -558,15 +558,37 @@ namespace Concise
 			
 			return descriptorSetAllocateInfo;
 		}
-		
-		inline VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo(VkDescriptorSetLayout & descriptorSetLayout)
+
+		inline VkPushConstantRange PushConstantRange(
+			VkShaderStageFlags stageFlags,
+			UInt32 offset,
+			UInt32 size
+		)
+		{
+			VkPushConstantRange pushConstantRange {};
+			pushConstantRange.stageFlags = stageFlags;
+			pushConstantRange.offset = offset;
+			pushConstantRange.size = size;
+			return pushConstantRange;
+		}
+
+		inline VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo(
+			UInt32 setLayoutCount = 0,
+			VkDescriptorSetLayout * pSetLayouts = nullptr,
+			UInt32 pushConstantRangeCount = 0,
+			VkPushConstantRange * pPushConstantRanges = nullptr,
+			VkPipelineLayoutCreateFlags flags = 0
+		)
 		{
 			VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
 			pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 			pipelineLayoutCreateInfo.pNext = nullptr;
-			pipelineLayoutCreateInfo.setLayoutCount = 1;
-			pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
-			
+			pipelineLayoutCreateInfo.setLayoutCount = setLayoutCount;
+			pipelineLayoutCreateInfo.pSetLayouts = pSetLayouts;
+			pipelineLayoutCreateInfo.pushConstantRangeCount = pushConstantRangeCount;
+			pipelineLayoutCreateInfo.pPushConstantRanges = pPushConstantRanges;
+			pipelineLayoutCreateInfo.flags = flags;
+
 			return pipelineLayoutCreateInfo;
 		}
 

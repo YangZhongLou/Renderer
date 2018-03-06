@@ -7,7 +7,19 @@
 namespace Concise
 {
 	Pipelines::Pipelines()
-	{		
+	{	
+		VkPushConstantRange pushConstantRange =
+			VkFactory::PushConstantRange(
+				VK_SHADER_STAGE_VERTEX_BIT,
+				sizeof(ThreadPushConstantBlock),
+				0);
+
+		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo =
+			VkFactory::PipelineLayoutCreateInfo(&descriptorSetLayout, 1);
+
+		VK_CHECK_RESULT(vkCreatePipelineLayout(Device::Instance().GetLogicalDevice(), 
+			&pipelineLayoutCreateInfo, nullptr, &m_pipelineLayout));
+
 		VkPipelineCacheCreateInfo pipelineCacheCreateInfo = VkFactory::PipelineCacheCreateInfo();
 		VK_CHECK_RESULT(vkCreatePipelineCache(Device::Instance().GetLogicalDevice(),
 			&pipelineCacheCreateInfo, nullptr, &m_pipelineCache));
@@ -56,16 +68,22 @@ namespace Concise
 				dynamicStateEnables.data());
 
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-
-		shaderStages[0] = loadShader(getAssetPath() + "shaders/multithreading/phong.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-		shaderStages[1] = loadShader(getAssetPath() + "shaders/multithreading/phong.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+		shaderStages.push_back(
+			Shader(VertexShader, "shaders/multithreading/phong.vert.spv")
+			.PipelineShaderStageCreateInfo());
+		shaderStages.push_back(
+			Shader(FragmentShader, "shaders/multithreading/phong.frag.spv")
+			.PipelineShaderStageCreateInfo());
 
 		VkGraphicsPipelineCreateInfo pipelineCreateInfo =
 			vks::initializers::pipelineCreateInfo(
-				pipelineLayout,
+				m_pipelineLayout,
 				renderPass,
 				0);
 
+		VkGraphicsPipelineCreateInfo pipelineCreateInfo =
+			VkFactory::GraphicsPipelineCreateInfo(shaderStages, )
+	
 		pipelineCreateInfo.pVertexInputState = &vertices.inputState;
 		pipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
 		pipelineCreateInfo.pRasterizationState = &rasterizationState;
@@ -77,8 +95,7 @@ namespace Concise
 		pipelineCreateInfo.stageCount = shaderStages.size();
 		pipelineCreateInfo.pStages = shaderStages.data();
 
-		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipelines.phong));
-
+		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, m_pipelineCache, 1, &pipelineCreateInfo, nullptr, &m_pipelines.phong));
 	}
 	
 	Pipelines::~Pipelines()

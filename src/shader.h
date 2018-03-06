@@ -25,6 +25,6 @@ namespace Concise
 		Shader(ShaderType shaderType, std::string filename);
 		~Shader();
 	public:
-		VkShaderModule & GetModule() { return m_shaderModule; }
+		VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo();
 	};
 }

@@ -17,7 +17,11 @@ namespace Concise
 	private:
 		VkPipelineCache m_pipelineCache;
 		VkPipelineLayout m_pipelineLayout;
-		std::map<std::string, VkPipeline> m_pipelines;
+
+		struct
+		{
+			VkPipeline phong;
+		} m_pipelines;
 	public:
 		Pipelines();
 		~Pipelines();

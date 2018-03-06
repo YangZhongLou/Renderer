@@ -39,4 +39,20 @@ namespace Concise
 	{
 		vkDestroyShaderModule(Device::Instance().GetLogicalDevice(), m_shaderModule, nullptr);
 	}
+
+	VkPipelineShaderStageCreateInfo Shader::PipelineShaderStageCreateInfo()
+	{
+		VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo;
+		switch (m_shaderType)
+		{
+		case VertexShader:
+			pipelineShaderStageCreateInfo = VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, m_shaderModule);
+		case FragmentShader:
+			pipelineShaderStageCreateInfo = VkFactory::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, m_shaderModule);
+		default:
+			assert(false);
+		}
+
+		return pipelineShaderStageCreateInfo;
+	}
 }

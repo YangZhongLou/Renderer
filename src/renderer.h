@@ -15,6 +15,7 @@ namespace Concise
 	class Swapchain;
 	class Synchronizations;
 	class ThreadPool;
+	class Pipelines;
 
 	struct Vertex;
 	
@@ -26,6 +27,7 @@ namespace Concise
 		Swapchain * m_swapchain;
 		Synchronizations * m_synchronizations;
 		ThreadPool * m_threadPool;
+		Pipelines * m_pipelines;
 				
 		Camera m_camera;
 	public:
