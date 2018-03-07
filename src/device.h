@@ -86,4 +86,6 @@ namespace Concise
 	private:
 		void InitDepthStencil(UInt32 width, UInt32 height);
 	};
+
+#define LogicalDevice Device::Instance().GetLogicalDevice()
 }

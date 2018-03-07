@@ -547,6 +547,17 @@ namespace Concise
 			
 			return writeDescriptorSet;
 		}
+
+		inline VkDescriptorPoolSize DescriptorPoolSize(
+			VkDescriptorType type,
+			UInt32 descriptorCount
+		)
+		{
+			VkDescriptorPoolSize descriptorPoolSize {};
+			descriptorPoolSize.type = type;
+			descriptorPoolSize.descriptorCount = descriptorCount;
+			return descriptorPoolSize;
+		}
 		
 		inline VkDescriptorSetAllocateInfo DescriptorSetAllocateInfo(VkDescriptorSetLayout & descriptorSetLayout, VkDescriptorPool & descriptorPool)
 		{
@@ -592,33 +603,53 @@ namespace Concise
 			return pipelineLayoutCreateInfo;
 		}
 
-		inline VkDescriptorSetLayoutCreateInfo DescriptorSetLayoutCreateInfo(VkDescriptorSetLayoutBinding & layoutBinding)
+		inline VkDescriptorSetLayoutCreateInfo DescriptorSetLayoutCreateInfo(
+			UInt32 bindingCount,
+			VkDescriptorSetLayoutBinding * pBindings,
+			VkDescriptorSetLayoutCreateFlags flags = 0
+		)
 		{
 			VkDescriptorSetLayoutCreateInfo descriptorLayout = {};
 			descriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 			descriptorLayout.pNext = nullptr;
-			descriptorLayout.bindingCount = 1;
-			descriptorLayout.pBindings = &layoutBinding;
+			descriptorLayout.bindingCount = bindingCount;
+			descriptorLayout.pBindings = pBindings;
+			descriptorLayout.flags = flags;
 			
 			return descriptorLayout;
 		}
 		
-		inline VkDescriptorSetLayoutBinding DescriptorSetLayoutBinding(VkDescriptorType descriptorType, VkShaderStageFlags stageFlags, UInt32 descriptorCount = 1)
+		inline VkDescriptorSetLayoutBinding DescriptorSetLayoutBinding(
+			VkDescriptorType descriptorType, 
+			VkShaderStageFlags stageFlags, 
+			UInt32 binding,
+			UInt32 descriptorCount = 1)
 		{
 			VkDescriptorSetLayoutBinding layoutBinding = {};
 			layoutBinding.descriptorType = descriptorType;
-			layoutBinding.descriptorCount = descriptorCount;
 			layoutBinding.stageFlags = stageFlags;
+			layoutBinding.binding = binding;
+			layoutBinding.descriptorCount = descriptorCount;
+
 			layoutBinding.pImmutableSamplers = nullptr;
 			
 			return layoutBinding;
 		}
-		
-		inline VkDescriptorPoolCreateInfo DescriptorPoolCreateInfo()
+
+		inline VkDescriptorPoolCreateInfo DescriptorPoolCreateInfo(
+			UInt32 maxSets,
+			UInt32 poolSizeCount,
+			VkDescriptorPoolSize * pPoolSizes,
+			VkDescriptorPoolCreateFlags flags = 0
+		)
 		{
 			VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
 			descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 			descriptorPoolInfo.pNext = nullptr;
+			descriptorPoolInfo.maxSets = maxSets;
+			descriptorPoolInfo.poolSizeCount = poolSizeCount;
+			descriptorPoolInfo.pPoolSizes = pPoolSizes;
+			descriptorPoolInfo.flags = flags;
 			
 			return descriptorPoolInfo;
 		}

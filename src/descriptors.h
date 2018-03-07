@@ -10,19 +10,14 @@
 
 namespace Concise
 {
-	class Device;
-	
-	struct Descriptor
-	{
-		VkDescriptorSetLayout layout;
-		VkDescriptorSet set;
-	};
-	
+#define UNIFORM_BUFFER_COUNT 4
+#define IMAGE_SAMPLER_COUNT 6
+
 	class Descriptors
 	{
 	private:
 		VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
-		std::map<std::string, Descriptor&> m_descriptors;
+		VkDescriptorSetLayout m_descriptorSetLayout;
 	public:
 		Descriptors();
 		~Descriptors();

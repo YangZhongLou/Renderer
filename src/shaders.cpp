@@ -16,6 +16,8 @@ namespace Concise
 		{
 			m_shaderStages[i] = m_shaders[i]->PipelineShaderStageCreateInfo();
 		}
+
+
 	}
 	
 	Shaders::~Shaders()
