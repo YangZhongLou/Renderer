@@ -3,6 +3,9 @@
 #include "defines.h"
 #include "vk_factory.hpp"
 #include "shader.h"
+#include "shaders.h"
+#include "renderpass.h"
+#include "renderer.h"
 
 namespace Concise
 {
@@ -11,18 +14,24 @@ namespace Concise
 		VkPushConstantRange pushConstantRange =
 			VkFactory::PushConstantRange(
 				VK_SHADER_STAGE_VERTEX_BIT,
-				sizeof(ThreadPushConstantBlock),
+				sizeof(PushConstants),
 				0);
 
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo =
-			VkFactory::PipelineLayoutCreateInfo(&descriptorSetLayout, 1);
+			VkFactory::PipelineLayoutCreateInfo(
+				1,
+				&Shaders::Instance().GetDescriptorSetLayout(),
+				1,
+				&pushConstantRange
+				);
 
-		VK_CHECK_RESULT(vkCreatePipelineLayout(Device::Instance().GetLogicalDevice(), 
+		VK_CHECK_RESULT(vkCreatePipelineLayout(LogicalDevice, 
 			&pipelineLayoutCreateInfo, nullptr, &m_pipelineLayout));
 
 		VkPipelineCacheCreateInfo pipelineCacheCreateInfo = VkFactory::PipelineCacheCreateInfo();
-		VK_CHECK_RESULT(vkCreatePipelineCache(Device::Instance().GetLogicalDevice(),
+		VK_CHECK_RESULT(vkCreatePipelineCache(LogicalDevice,
 			&pipelineCacheCreateInfo, nullptr, &m_pipelineCache));
+
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState =
 			VkFactory::PipelineInputAssemblyStateCreateInfo(
@@ -67,39 +76,28 @@ namespace Concise
 				dynamicStateEnables.size(),
 				dynamicStateEnables.data());
 
-		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-		shaderStages.push_back(
-			Shader(VertexShader, "shaders/multithreading/phong.vert.spv")
-			.PipelineShaderStageCreateInfo());
-		shaderStages.push_back(
-			Shader(FragmentShader, "shaders/multithreading/phong.frag.spv")
-			.PipelineShaderStageCreateInfo());
 
 		VkGraphicsPipelineCreateInfo pipelineCreateInfo =
-			vks::initializers::pipelineCreateInfo(
+			VkFactory::GraphicsPipelineCreateInfo(
+				Shaders::Instance().GetShaderStages(),
+				&Vertices::Instance().GetVerticesInput().inputState,
+				&inputAssemblyState,
+				&viewportState,
+				&rasterizationState,
+				&multisampleState,
+				&depthStencilState,
+				&colorBlendState,
+				&dynamicState,
 				m_pipelineLayout,
-				renderPass,
-				0);
-
-		VkGraphicsPipelineCreateInfo pipelineCreateInfo =
-			VkFactory::GraphicsPipelineCreateInfo(shaderStages, )
+				Renderer::Instance().GetRenderpass()->Get()
+			);
 	
-		pipelineCreateInfo.pVertexInputState = &vertices.inputState;
-		pipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
-		pipelineCreateInfo.pRasterizationState = &rasterizationState;
-		pipelineCreateInfo.pColorBlendState = &colorBlendState;
-		pipelineCreateInfo.pMultisampleState = &multisampleState;
-		pipelineCreateInfo.pViewportState = &viewportState;
-		pipelineCreateInfo.pDepthStencilState = &depthStencilState;
-		pipelineCreateInfo.pDynamicState = &dynamicState;
-		pipelineCreateInfo.stageCount = shaderStages.size();
-		pipelineCreateInfo.pStages = shaderStages.data();
-
-		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, m_pipelineCache, 1, &pipelineCreateInfo, nullptr, &m_pipelines.phong));
+		VK_CHECK_RESULT(vkCreateGraphicsPipelines(LogicalDevice, m_pipelineCache, 1, &pipelineCreateInfo, nullptr, &m_pipelines["phong"]));
 	}
 	
 	Pipelines::~Pipelines()
 	{
-		
+		for (auto it : m_pipelines)
+			vkDestroyPipeline(LogicalDevice, it->second, nullptr);
 	}
 }

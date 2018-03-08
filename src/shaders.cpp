@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "device.h"
 #include "shader.h"
+#include "descriptors.h"
 
 namespace Concise
 {
@@ -17,7 +18,7 @@ namespace Concise
 			m_shaderStages[i] = m_shaders[i]->PipelineShaderStageCreateInfo();
 		}
 
-
+		m_descriptors = new Descriptors;
 	}
 	
 	Shaders::~Shaders()
@@ -26,12 +27,12 @@ namespace Concise
 		{
 			SAFE_DELETE(shader);
 		}
+
+		SAFE_DELETE(m_descriptors);
 	}
 
-	std::vector<VkPipelineShaderStageCreateInfo> & Shaders::GetShaderStages()
+	inline VkDescriptorSetLayout & Shaders::GetDescriptorSetLayout()
 	{
-		return m_shaderStages;
+		return m_descriptors->GetDescriptorSetLayout();
 	}
-
-
 }

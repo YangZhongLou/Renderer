@@ -62,6 +62,13 @@ namespace Concise
 		float colors[3];
 	};
 
+	struct VerticesInput
+	{
+		VkPipelineVertexInputStateCreateInfo inputState;
+		std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+	};
+
 	struct Buffer;
 	
 	#define VERTEX_BUFFER_BIND_ID 0
@@ -82,12 +89,7 @@ namespace Concise
 		UInt32 m_indexDataOffset;
 		UInt32 m_indexCount;
 
-		struct 
-		{
-			VkPipelineVertexInputStateCreateInfo inputState;
-			std::vector<VkVertexInputBindingDescription> bindingDescriptions;
-			std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-		} m_verticesInput;
+		VerticesInput m_verticesInput;
 		
 	public:
 		static Vertices & Instance() 
@@ -105,6 +107,7 @@ namespace Concise
 		const Buffer & GetVertexBuffer() const { return *m_vertexBuffer; }
 		const Buffer & GetIndexBuffer() const { return *m_indexBuffer; }
 		UInt32 GetIndexCount() const { return m_indexCount; };
+		VerticesInput & GetVerticesInput() { return m_verticesInput; }
 	private:
 		void InitBuffers();
 	};

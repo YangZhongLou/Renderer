@@ -21,15 +21,15 @@ namespace Concise
 	{
 		m_swapchain = nullptr;
 		
-		m_vertices = new Vertices();
 		m_uniforms = new Uniforms();
 		m_threadPool = new ThreadPool(std::thread::hardware_concurrency());
+
+
 	}
 	
 	Renderer::~Renderer()
 	{
 		SAFE_DELETE(m_uniforms);
-		SAFE_DELETE(m_vertices);
 		SAFE_DELETE(m_swapchain);
 		SAFE_DELETE(m_threadPool);
 	}
@@ -56,9 +56,8 @@ namespace Concise
 	
 	void Renderer::SubmitVerticesData(std::vector<Vertex> & verticesData, std::vector<UInt32> & indicesData)
 	{
-		m_vertices->Submit(verticesData, indicesData);
+		Vertices::Instance().Submit(verticesData, indicesData);
 	}
-	
 	
 	void Renderer::RenderFrame()
 	{

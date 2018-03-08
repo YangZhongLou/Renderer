@@ -239,39 +239,31 @@ namespace Concise
 	
 	VkResult Device::CreateBuffer(VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceSize size, Buffer & buffer, void *data = nullptr)
 	{
-		VkBufferCreateInfo bufferCreateInfo = VkFactory::BufferCreateInfo(size, usageFlags);;
-		bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		VK_CHECK_RESULT(vkCreateBuffer(m_logicalDevice, &bufferCreateInfo, nullptr, &buffer.buffer));
+		VkBufferCreateInfo bufferCreateInfo = VkFactory::BufferCreateInfo(size, usageFlags);
+		VK_CHECK_RESULT(vkCreateBuffer(LogicalDevice, &bufferCreateInfo, nullptr, &buffer.buffer));
 
 		VkMemoryRequirements memReqs;
-		vkGetBufferMemoryRequirements(m_logicalDevice, buffer.buffer, &memReqs);
-		VkMemoryAllocateInfo memAllocInfo = VkFactory::MemoryAllocateInfo(memReqs.size, 
-			GetMemoryTypeIndex(memReqs.memoryTypeBits, memoryPropertyFlags));
-			
-		VK_CHECK_RESULT(vkAllocateMemory(m_logicalDevice, &memAllocInfo, nullptr, &buffer.memory));
-		
+		vkGetBufferMemoryRequirements(LogicalDevice, buffer.buffer, &memReqs);
+
+		VkMemoryAllocateInfo memAlloc = VkFactory::MemoryAllocateInfo(
+			memReqs.size, GetMemoryTypeIndex(memReqs.memoryTypeBits, memoryPropertyFlags));
+		VK_CHECK_RESULT(vkAllocateMemory(LogicalDevice, &memAlloc, nullptr, &buffer.memory));
+
+		buffer.alignment = memReqs.alignment;
+		buffer.size = memAlloc.allocationSize;
+		buffer.usageFlags = usageFlags;
+		buffer.memoryPropertyFlags = memoryPropertyFlags;
+
 		if (data != nullptr)
 		{
-			/** TODO, refactor */
-			void *mapped;
-			VK_CHECK_RESULT(vkMapMemory(m_logicalDevice, buffer.memory, 0, size, 0, &mapped));
-			memcpy(mapped, data, size);
-			
-			if ((memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
-			{
-				VkMappedMemoryRange mappedRange = VkFactory::MappedMemoryRange();
-				mappedRange.memory = buffer.memory;
-				mappedRange.offset = 0;
-				mappedRange.size = size;
-				vkFlushMappedMemoryRanges(m_logicalDevice, 1, &mappedRange);
-			}
-			vkUnmapMemory(m_logicalDevice, buffer.memory);
+			VK_CHECK_RESULT(buffer.Map());
+			memcpy(buffer.mapped, data, size);
+			buffer.Unmap();
 		}
 
-		// Attach the memory to the buffer object
-		VK_CHECK_RESULT(vkBindBufferMemory(m_logicalDevice, buffer.buffer, buffer.memory, 0));
+		buffer.SetupDescriptor();
 
-		return VK_SUCCESS;
+		return buffer.Bind();
 	}
 	
 	VkCommandBuffer Device::GetCommandBuffer(bool beginRecord)

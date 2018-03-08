@@ -17,6 +17,7 @@ namespace Concise
 		VK_CHECK_RESULT(vkCreateDescriptorPool(LogicalDevice,
 			&descriptorPoolInfo, nullptr, &m_descriptorPool));
 
+		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
 		setLayoutBindings.resize(UNIFORM_BUFFER_COUNT + IMAGE_SAMPLER_COUNT);
 		for (auto i = 0; i < UNIFORM_BUFFER_COUNT; ++i)
 		{
@@ -34,10 +35,14 @@ namespace Concise
 		);
 		VK_CHECK_RESULT(vkCreateDescriptorSetLayout(LogicalDevice, 
 			&descriptorLayout, nullptr, &m_descriptorSetLayout));
+
+		VkDescriptorSetAllocateInfo allocInfo = VkFactory::DescriptorSetAllocateInfo(
+			m_descriptorPool, 1, &m_descriptorSetLayout);
+
+		VK_CHECK_RESULT(vkAllocateDescriptorSets(LogicalDevice, &allocInfo, &m_descriptorSets["default"]));
 	}
 	
 	Descriptors::~Descriptors()
-	{
-		
+	{	
 	}
 }

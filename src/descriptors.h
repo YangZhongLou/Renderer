@@ -18,9 +18,12 @@ namespace Concise
 	private:
 		VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 		VkDescriptorSetLayout m_descriptorSetLayout;
+
+		std::map<std::string, VkDescriptorSet> m_descriptorSets;
 	public:
 		Descriptors();
 		~Descriptors();
 	public:
+		VkDescriptorSetLayout & GetDescriptorSetLayout() { return m_descriptorSetLayout; }
 	};
 }

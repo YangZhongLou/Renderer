@@ -10,18 +10,15 @@
 
 namespace Concise
 {
-	class Device;
-	
+
+
 	class Pipelines
 	{
 	private:
 		VkPipelineCache m_pipelineCache;
 		VkPipelineLayout m_pipelineLayout;
 
-		struct
-		{
-			VkPipeline phong;
-		} m_pipelines;
+		std::map<std::string, VkPipeline> m_pipelines;
 	public:
 		Pipelines();
 		~Pipelines();

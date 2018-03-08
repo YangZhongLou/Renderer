@@ -10,33 +10,41 @@
 
 namespace Concise
 {
-	class Vertices;
 	class Uniforms;
 	class Swapchain;
 	class Synchronizations;
 	class ThreadPool;
 	class Pipelines;
+	class Renderpass;
 
 	struct Vertex;
 	
 	class Renderer
 	{
 	private:				
-		Vertices * m_vertices;
 		Uniforms * m_uniforms;
 		Swapchain * m_swapchain;
 		Synchronizations * m_synchronizations;
 		ThreadPool * m_threadPool;
+		Renderpass * m_renderpass;
 		Pipelines * m_pipelines;
 				
 		Camera m_camera;
+
 	public:
+		static Renderer & Instance()
+		{
+			static Renderer instance;
+			return instance;
+		}
+	private:
 		Renderer();
 		~Renderer();
 	public:
+		Renderpass * GetRenderpass() const{ return m_renderpass; }
+	public:
 		void Loop();
 		void RenderFrame();
-		
 		void SubmitVerticesData(std::vector<Vertex> & verticesData, std::vector<UInt32> & indicesData);
 	};
 }

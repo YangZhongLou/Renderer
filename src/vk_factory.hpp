@@ -558,14 +558,42 @@ namespace Concise
 			descriptorPoolSize.descriptorCount = descriptorCount;
 			return descriptorPoolSize;
 		}
-		
-		inline VkDescriptorSetAllocateInfo DescriptorSetAllocateInfo(VkDescriptorSetLayout & descriptorSetLayout, VkDescriptorPool & descriptorPool)
+
+		inline VkWriteDescriptorSet WriteDescriptorSet(
+			VkDescriptorType descriptorType,
+			VkDescriptorSet dstSet,
+			UInt32 dstBinding,
+			VkDescriptorBufferInfo * pBufferInfo,
+			UInt32 descriptorCount = 1,
+			UInt32 dstArrayElement = 0,
+			VkDescriptorImageInfo * pImageInfo = nullptr,
+			VkBufferView * pTexelBufferView = nullptr
+		)
+		{
+			VkWriteDescriptorSet writeDescriptorSet{};
+			writeDescriptorSet.descriptorType = descriptorType;
+			writeDescriptorSet.dstSet = dstSet;
+			writeDescriptorSet.dstBinding = dstBinding;
+			writeDescriptorSet.pBufferInfo = pBufferInfo;
+			writeDescriptorSet.descriptorCount = descriptorCount;
+			writeDescriptorSet.dstArrayElement = dstArrayElement;
+			writeDescriptorSet.pImageInfo = pImageInfo;
+			writeDescriptorSet.pTexelBufferView = pTexelBufferView;
+
+			return writeDescriptorSet;
+		}
+
+		inline VkDescriptorSetAllocateInfo DescriptorSetAllocateInfo(
+			VkDescriptorPool descriptorPool,
+			UInt32 descriptorSetCount,
+			VkDescriptorSetLayout * pSetLayouts
+			)
 		{
 			VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
 			descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 			descriptorSetAllocateInfo.descriptorPool = descriptorPool;
-			descriptorSetAllocateInfo.descriptorSetCount = 1;
-			descriptorSetAllocateInfo.pSetLayouts = &descriptorSetLayout;
+			descriptorSetAllocateInfo.descriptorSetCount = descriptorSetCount;
+			descriptorSetAllocateInfo.pSetLayouts = pSetLayouts;
 			
 			return descriptorSetAllocateInfo;
 		}
