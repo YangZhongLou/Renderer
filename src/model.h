@@ -66,7 +66,7 @@ namespace Concise
 		Model(const std::string & filename);
 		~Model();
 	public:
-		void LoadData(VertexLayout & layout, ModelCreateInfo & modelCreateInfo, int flags = defaultFlags);
+		void LoadData(VertexLayout & layout, ModelCreateInfo * modelCreateInfo, int flags = defaultFlags);
 	};
 	
 }

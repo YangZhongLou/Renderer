@@ -77,7 +77,6 @@ namespace Concise
 		/** TODO */
 		void EnableFeatures();
 		
-		VkResult CreateBuffer(VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceSize size, Buffer & buffer, void *data = nullptr);
 		void CreateCommandPool(UInt32 queueFamilyIndex, VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 		void CreateLogicalDevice(VkPhysicalDeviceFeatures & enabledFeatures, 
 			std::vector<const char*> enabledExtensions, 

@@ -4,6 +4,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 #include "model.h"
+#include "vertices.h"
 
 namespace Concise
 {
@@ -14,13 +15,12 @@ namespace Concise
 	
 	Model::~Model()
 	{
-		
 	}
 	
-	void Model::LoadData(VertexLayout & layout, ModelCreateInfo & modelCreateInfo, int flags = defaultFlags));
+	void Model::LoadData(VertexLayout & layout, ModelCreateInfo * modelCreateInfo, int flags)
 	{
 		Assimp::Importer importer;
-		const aiScene * scene = importer.ReadFile(filename.c_str(), flags);
+		const aiScene * scene = importer.ReadFile(m_filename.c_str(), flags);
 		
 		if (scene)
 		{
@@ -30,14 +30,15 @@ namespace Concise
 			glm::vec3 scale(1.0f);
 			glm::vec2 uvscale(1.0f);
 			glm::vec3 center(0.0f);
-			if (createInfo)
+
+			if (modelCreateInfo)
 			{
-				scale = createInfo->scale;
-				uvscale = createInfo->uvscale;
-				center = createInfo->center;
+				scale = modelCreateInfo->scale;
+				uvscale = modelCreateInfo->uvscale;
+				center = modelCreateInfo->center;
 			}
 
-			m_m_vertexCount = 0;
+			m_vertexCount = 0;
 			m_indexCount = 0;
 
 			for (UInt32 i = 0; i < scene->mNumMeshes; i++)
@@ -107,18 +108,18 @@ namespace Concise
 						};
 					}
 
-					dim.max.x = fmax(pos->x, dim.max.x);
-					dim.max.y = fmax(pos->y, dim.max.y);
-					dim.max.z = fmax(pos->z, dim.max.z);
+					m_dimension.max.x = fmax(pos->x, m_dimension.max.x);
+					m_dimension.max.y = fmax(pos->y, m_dimension.max.y);
+					m_dimension.max.z = fmax(pos->z, m_dimension.max.z);
 
-					dim.min.x = fmin(pos->x, dim.min.x);
-					dim.min.y = fmin(pos->y, dim.min.y);
-					dim.min.z = fmin(pos->z, dim.min.z);
+					m_dimension.min.x = fmin(pos->x, m_dimension.min.x);
+					m_dimension.min.y = fmin(pos->y, m_dimension.min.y);
+					m_dimension.min.z = fmin(pos->z, m_dimension.min.z);
 				}
 
-				dim.size = dim.max - dim.min;
+				m_dimension.size = m_dimension.max - m_dimension.min;
 
-				m_parts[i].m_vertexCount = mesh->mNumVertices;
+				m_parts[i].vertexCount = mesh->mNumVertices;
 
 				UInt32 indexBase = static_cast<UInt32>(m_indexData.size());
 				for (UInt32 j = 0; j < mesh->mNumFaces; j++)
@@ -130,7 +131,7 @@ namespace Concise
 					m_indexData.push_back(indexBase + face.mIndices[0]);
 					m_indexData.push_back(indexBase + face.mIndices[1]);
 					m_indexData.push_back(indexBase + face.mIndices[2]);
-					m_parts[i].m_indexCount += 3;
+					m_parts[i].indexCount += 3;
 					m_indexCount += 3;
 				}
 			}

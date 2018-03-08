@@ -24,7 +24,7 @@ namespace Concise
 		m_uniforms = new Uniforms();
 		m_threadPool = new ThreadPool(std::thread::hardware_concurrency());
 
-
+		m_synchronizations = new Synchronizations();
 	}
 	
 	Renderer::~Renderer()
@@ -67,18 +67,18 @@ namespace Concise
 		VK_CHECK_RESULT(vkResetFences(m_device->GetLogicalDevice(), 1, &m_fences[m_currentBuffer]));
 
 		VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		
+
 		VkSubmitInfo submitInfo = VkFactory::SubmitInfo();
-		submitInfo.pWaitDstStageMask = &waitStageMask;									
-		submitInfo.pWaitSemaphores = &m_presentCompleteSemaphore;							
-		submitInfo.waitSemaphoreCount = 1;																														
-		submitInfo.pSignalSemaphores = &m_renderCompleteSemaphore;						
-		submitInfo.signalSemaphoreCount = 1;											
-		submitInfo.pCommandBuffers = &m_drawCmdBuffers[m_currentBuffer];					
-		submitInfo.commandBufferCount = 1;												
+		submitInfo.pWaitDstStageMask = &waitStageMask;
+		submitInfo.pWaitSemaphores = &m_presentCompleteSemaphore;
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &m_renderCompleteSemaphore;
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pCommandBuffers = &m_drawCmdBuffers[m_currentBuffer];
+		submitInfo.commandBufferCount = 1;
 
 		VK_CHECK_RESULT(vkQueueSubmit(m_device->GetQueue(), 1, &submitInfo, m_fences[m_currentBuffer]));
-		
+
 		VK_CHECK_RESULT(m_swapchain->QueuePresent(m_device->GetQueue(), m_currentBuffer, m_renderCompleteSemaphore));
 
 		VK_CHECK_RESULT(vkQueueWaitIdle(m_device->GetQueue()));

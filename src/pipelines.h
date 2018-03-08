@@ -10,8 +10,6 @@
 
 namespace Concise
 {
-
-
 	class Pipelines
 	{
 	private:

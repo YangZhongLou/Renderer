@@ -28,9 +28,16 @@ namespace Concise
 		ThreadPool * m_threadPool;
 		Renderpass * m_renderpass;
 		Pipelines * m_pipelines;
+
+		struct ThreadData 
+		{
+			VkCommandPool commandPool;
+			std::vector<VkCommandBuffer> commandBuffer;
+			std::vector<PushConstants> pushConstBlock;
+		};
+		std::vector<ThreadData> m_threadData;
 				
 		Camera m_camera;
-
 	public:
 		static Renderer & Instance()
 		{

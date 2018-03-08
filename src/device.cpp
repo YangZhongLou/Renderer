@@ -237,35 +237,6 @@ namespace Concise
 		return 0;
 	}
 	
-	VkResult Device::CreateBuffer(VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceSize size, Buffer & buffer, void *data = nullptr)
-	{
-		VkBufferCreateInfo bufferCreateInfo = VkFactory::BufferCreateInfo(size, usageFlags);
-		VK_CHECK_RESULT(vkCreateBuffer(LogicalDevice, &bufferCreateInfo, nullptr, &buffer.buffer));
-
-		VkMemoryRequirements memReqs;
-		vkGetBufferMemoryRequirements(LogicalDevice, buffer.buffer, &memReqs);
-
-		VkMemoryAllocateInfo memAlloc = VkFactory::MemoryAllocateInfo(
-			memReqs.size, GetMemoryTypeIndex(memReqs.memoryTypeBits, memoryPropertyFlags));
-		VK_CHECK_RESULT(vkAllocateMemory(LogicalDevice, &memAlloc, nullptr, &buffer.memory));
-
-		buffer.alignment = memReqs.alignment;
-		buffer.size = memAlloc.allocationSize;
-		buffer.usageFlags = usageFlags;
-		buffer.memoryPropertyFlags = memoryPropertyFlags;
-
-		if (data != nullptr)
-		{
-			VK_CHECK_RESULT(buffer.Map());
-			memcpy(buffer.mapped, data, size);
-			buffer.Unmap();
-		}
-
-		buffer.SetupDescriptor();
-
-		return buffer.Bind();
-	}
-	
 	VkCommandBuffer Device::GetCommandBuffer(bool beginRecord)
 	{
 		VkCommandBuffer cmdBuffer;
