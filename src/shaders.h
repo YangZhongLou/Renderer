@@ -13,11 +13,6 @@ namespace Concise
 	class Device;
 	class Descriptors;
 
-	struct PushConstants
-	{
-		float constants[16];
-	};
-
 	class Shaders
 	{
 	private:

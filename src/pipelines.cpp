@@ -6,6 +6,7 @@
 #include "shaders.h"
 #include "renderpass.h"
 #include "renderer.h"
+#include "threaddata.h"
 
 namespace Concise
 {
@@ -14,7 +15,7 @@ namespace Concise
 		VkPushConstantRange pushConstantRange =
 			VkFactory::PushConstantRange(
 				VK_SHADER_STAGE_VERTEX_BIT,
-				sizeof(PushConstants),
+				sizeof(ThreadPushConstantBlock),
 				0);
 
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo =
@@ -97,7 +98,7 @@ namespace Concise
 	
 	Pipelines::~Pipelines()
 	{
-		for (auto it : m_pipelines)
-			vkDestroyPipeline(LogicalDevice, it->second, nullptr);
+		for (auto & it : m_pipelines)
+			vkDestroyPipeline(LogicalDevice, it.second, nullptr);
 	}
 }
